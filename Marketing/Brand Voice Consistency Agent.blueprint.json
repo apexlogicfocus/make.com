@@ -1,0 +1,696 @@
+{
+    "name": "Brand Voice Consistency Agent",
+    "flow": [
+        {
+            "id": 21,
+            "module": "slack:watchNewEvents",
+            "version": 4,
+            "parameters": {
+                "__IMTHOOK__": null
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0,
+                    "messages": [
+                        {
+                            "category": "setup",
+                            "severity": "error",
+                            "message": "Webhook: Value must not be empty."
+                        }
+                    ]
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTHOOK__": {
+                            "data": {
+                                "editable": "false"
+                            },
+                            "label": "UX writing agent"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTHOOK__",
+                        "type": "hook:slack-events-make",
+                        "label": "Webhook",
+                        "required": true
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "client_msg_id",
+                        "type": "text",
+                        "label": "Client Message ID"
+                    },
+                    {
+                        "name": "type",
+                        "type": "text",
+                        "label": "Type"
+                    },
+                    {
+                        "name": "subtype",
+                        "type": "text",
+                        "label": "Subtype"
+                    },
+                    {
+                        "name": "text",
+                        "type": "text",
+                        "label": "Text"
+                    },
+                    {
+                        "name": "user",
+                        "type": "text",
+                        "label": "User"
+                    },
+                    {
+                        "name": "username",
+                        "type": "text",
+                        "label": "Username"
+                    },
+                    {
+                        "name": "team",
+                        "type": "text",
+                        "label": "Team"
+                    },
+                    {
+                        "name": "icons",
+                        "spec": [],
+                        "type": "collection",
+                        "label": "Icons"
+                    },
+                    {
+                        "name": "bot_id",
+                        "type": "text",
+                        "label": "Bot ID"
+                    },
+                    {
+                        "name": "app_id",
+                        "type": "text",
+                        "label": "App ID"
+                    },
+                    {
+                        "name": "display_as_bot",
+                        "type": "boolean",
+                        "label": "Display As Bot"
+                    },
+                    {
+                        "name": "ts",
+                        "type": "text",
+                        "label": "Timestamp"
+                    },
+                    {
+                        "name": "bot_profile",
+                        "spec": [
+                            {
+                                "name": "id",
+                                "type": "text",
+                                "label": "Bot ID"
+                            },
+                            {
+                                "name": "deleted",
+                                "type": "boolean",
+                                "label": "Deleted"
+                            },
+                            {
+                                "name": "name",
+                                "type": "text",
+                                "label": "Name"
+                            },
+                            {
+                                "name": "updated",
+                                "type": "number",
+                                "label": "Updated"
+                            },
+                            {
+                                "name": "app_id",
+                                "type": "text",
+                                "label": "App ID"
+                            },
+                            {
+                                "name": "icons",
+                                "spec": [],
+                                "type": "collection",
+                                "label": "Icons"
+                            },
+                            {
+                                "name": "team_id",
+                                "type": "text",
+                                "label": "Team ID"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Bot Profile"
+                    },
+                    {
+                        "name": "blocks",
+                        "spec": [
+                            {
+                                "name": "type",
+                                "type": "text",
+                                "label": "Type"
+                            },
+                            {
+                                "name": "block_id",
+                                "type": "text",
+                                "label": "Block ID"
+                            },
+                            {
+                                "name": "elements",
+                                "spec": [
+                                    {
+                                        "name": "type",
+                                        "type": "text",
+                                        "label": "Type"
+                                    },
+                                    {
+                                        "name": "block_id",
+                                        "type": "text",
+                                        "label": "Block ID"
+                                    },
+                                    {
+                                        "name": "elements",
+                                        "spec": [
+                                            {
+                                                "name": "type",
+                                                "type": "text",
+                                                "label": "Type"
+                                            },
+                                            {
+                                                "name": "text",
+                                                "type": "text",
+                                                "label": "Text"
+                                            }
+                                        ],
+                                        "type": "array",
+                                        "label": "Elements"
+                                    }
+                                ],
+                                "type": "array",
+                                "label": "Elements"
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Blocks"
+                    },
+                    {
+                        "name": "thread_ts",
+                        "type": "text",
+                        "label": "Thread Timestamp"
+                    },
+                    {
+                        "name": "parent_user_id",
+                        "type": "text",
+                        "label": "Parent User ID"
+                    },
+                    {
+                        "name": "channel",
+                        "type": "text",
+                        "label": "Channel"
+                    },
+                    {
+                        "name": "event_ts",
+                        "type": "text",
+                        "label": "Event Timestamp"
+                    },
+                    {
+                        "name": "channel_type",
+                        "type": "text",
+                        "label": "Channel Type"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 24,
+            "module": "ai-local-agent:RunLocalAIAgent",
+            "version": 0,
+            "parameters": {
+                "makeConnectionId": null
+            },
+            "filter": {
+                "name": "",
+                "conditions": [
+                    [
+                        {
+                            "a": "{{21.type}}",
+                            "b": "message",
+                            "o": "text:equal:ci"
+                        },
+                        {
+                            "a": "{{21.bot_id}}",
+                            "o": "notexist"
+                        },
+                        {
+                            "a": "{{21.text}}",
+                            "o": "exist"
+                        }
+                    ],
+                    [
+                        {
+                            "a": "{{21.thread_ts}}",
+                            "o": "exist"
+                        },
+                        {
+                            "a": "{{21.text}}",
+                            "o": "exist"
+                        }
+                    ]
+                ]
+            },
+            "mapper": {
+                "files": [],
+                "message": "{{21.text}}",
+                "timeout": "",
+                "threadId": "{{ifempty(21.thread_ts; 21.ts)}}",
+                "outputType": "text",
+                "modelConfig": {
+                    "recursionLimit": "2",
+                    "iterationsFromHistoryCount": "10"
+                },
+                "defaultModel": "gpt-5.2",
+                "systemPrompt": "# ROLE\nYou are the {company} UX Writing Advisor. Your role is to provide expert guidance on UI copy, tooltips, and helper text for the {company} platform, ensuring all suggestions are professional, concise, and helpful.\n\n# KNOWLEDGE BASE & TONE\n* Strictly adhere to the 'UX Writing Best Practices' and 'UX Writing Examples' files.\n* Always use the '{company} Company Terminology' file to ensure naming consistency.\n* Tone: Professional, expert, and helpful. \n* Restriction: Avoid \"cutesy\" or alarmist language (e.g., no \"oops,\" \"uh-oh,\" or \"whoops\").\n\n# TASK EXECUTION\nWhen a Slack message is received:\n1. Analyze the user's specific UX writing dilemma.\n2. Cross-reference the request with the provided Knowledge Base files.\n3. Provide a \"Current vs. Improved\" comparison if applicable.\n4. Briefly explain the \"Why\" behind your suggestion based on UX principles (e.g., scannability, clarity, or action-oriented language).\n\n# SLACK FORMATTING RULES (MANDATORY)\n* No Markdown headers: Do not use #, ##, or ###.\n* Bolding: Use single asterisks *like this*.\n* Spacing: Use a single line break between related items and a double line break only between distinct sections.\n* Visuals: Use relevant emojis (e.g., 💡, ✅, ⚠️) to improve scannability.\n* Hierarchy: Bold the category name or the value, but avoid bolding the entire line."
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0,
+                    "name": "UX writing agent",
+                    "messages": [
+                        {
+                            "category": "setupreq",
+                            "severity": "error",
+                            "message": "The module is not set up."
+                        }
+                    ]
+                },
+                "restore": {
+                    "expect": {
+                        "files": {
+                            "mode": "chose"
+                        },
+                        "outputType": {
+                            "label": "Text"
+                        },
+                        "defaultModel": {
+                            "mode": "chose",
+                            "label": "GPT-5.2The most advanced model with superior reasoning, speed, and instruction-following for complex, real-world tasks",
+                            "nested": []
+                        }
+                    },
+                    "parameters": {
+                        "makeConnectionId": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "ai-provider"
+                            },
+                            "label": "My OpenAI connection"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "makeConnectionId",
+                        "type": "account:ai-provider,openai-gpt-3,anthropic-claude,gemini-ai-q9zyjp,ai-agent-foundry-openai,ai-agent-foundry-non-openai,mistral-ai,cohere,groq,ai-agent-xai,amazon-bedrock,ai-agent-openai-compatible",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "defaultModel",
+                        "type": "select",
+                        "label": "Model",
+                        "required": true
+                    },
+                    {
+                        "name": "systemPrompt",
+                        "type": "text",
+                        "label": "Instructions"
+                    },
+                    {
+                        "name": "message",
+                        "type": "text",
+                        "label": "Input",
+                        "required": true
+                    },
+                    {
+                        "name": "files",
+                        "spec": [
+                            {
+                                "name": "fileName",
+                                "type": "filename",
+                                "label": "File name",
+                                "semantic": "file:name"
+                            },
+                            {
+                                "name": "data",
+                                "type": "buffer",
+                                "label": "Data",
+                                "semantic": "file:data"
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Input files"
+                    },
+                    {
+                        "name": "threadId",
+                        "type": "text",
+                        "label": "Conversation ID"
+                    },
+                    {
+                        "name": "modelConfig",
+                        "spec": [
+                            {
+                                "name": "tokenLimit",
+                                "type": "hidden",
+                                "label": "Max output tokens"
+                            },
+                            {
+                                "name": "recursionLimit",
+                                "type": "hidden",
+                                "label": "Steps per agent call"
+                            },
+                            {
+                                "name": "iterationsFromHistoryCount",
+                                "type": "number",
+                                "label": "Maximum conversation history"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Model configuration"
+                    },
+                    {
+                        "name": "timeout",
+                        "type": "number",
+                        "label": "Step timeout",
+                        "validate": {
+                            "max": 600,
+                            "min": 120
+                        }
+                    },
+                    {
+                        "name": "outputType",
+                        "type": "select",
+                        "label": "Response format",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "text",
+                                "make-schema"
+                            ]
+                        }
+                    }
+                ],
+                "advanced": true
+            },
+            "tools": [
+                {
+                    "name": "Agent Knowledge",
+                    "description": "Search uploaded files to retrieve relevant facts, knowledge, and specific information to answer user queries accurately.",
+                    "flow": [
+                        {
+                            "id": 25,
+                            "module": "knowledge:KnowledgeStandAlone",
+                            "version": 1,
+                            "parameters": {},
+                            "mapper": {
+                                "limit": "50",
+                                "query": "{{24.query}}",
+                                "fileIds": [],
+                                "filestorage": [
+                                    "37bc130d-5ce3-49d2-a7fb-799acb14a881",
+                                    "51593452-3ce8-4969-b28d-adef189f32b1",
+                                    "7f59aa27-273f-4320-b977-2d3f5995feb2",
+                                    "cc284f6b-00c9-4ce2-b91e-8fd98a6432d1"
+                                ]
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 250
+                                },
+                                "restore": {},
+                                "expect": [
+                                    {
+                                        "name": "filestorage",
+                                        "type": "filestorage",
+                                        "label": "Knowledge files"
+                                    },
+                                    {
+                                        "name": "query",
+                                        "type": "text",
+                                        "label": "Search query",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "fileIds",
+                                        "type": "hidden",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "limit",
+                                        "type": "number",
+                                        "label": "Limit",
+                                        "required": true,
+                                        "validate": {
+                                            "max": 500,
+                                            "min": 1
+                                        }
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 23,
+            "module": "slack:CreateMessage",
+            "version": 4,
+            "parameters": {
+                "__IMTCONN__": null
+            },
+            "mapper": {
+                "text": "{{24.response}}",
+                "parse": false,
+                "idType": "channel",
+                "mrkdwn": true,
+                "channel": "DM4UHB7HT",
+                "thread_ts": "{{21.ts}}",
+                "icon_emoji": ":black_nib:",
+                "channelType": "im",
+                "channelWType": "list"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0,
+                    "messages": [
+                        {
+                            "category": "setupreq",
+                            "severity": "error",
+                            "message": "The module is not set up."
+                        }
+                    ]
+                },
+                "restore": {
+                    "expect": {
+                        "parse": {
+                            "mode": "chose"
+                        },
+                        "idType": {
+                            "mode": "chose",
+                            "label": "Channel ID"
+                        },
+                        "mrkdwn": {
+                            "mode": "chose"
+                        },
+                        "channel": {
+                            "mode": "chose",
+                            "label": "l.govender"
+                        },
+                        "link_names": {
+                            "mode": "chose"
+                        },
+                        "channelType": {
+                            "label": "Direct message"
+                        },
+                        "channelWType": {
+                            "label": "Select from the list"
+                        },
+                        "unfurl_links": {
+                            "mode": "chose"
+                        },
+                        "unfurl_media": {
+                            "mode": "chose"
+                        },
+                        "reply_broadcast": {
+                            "mode": "chose"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "slack2"
+                            },
+                            "label": "Wayne (integromat.slack.com - l.govender)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:slack2,slack3",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "channelWType",
+                        "type": "select",
+                        "label": "Enter a channel ID or name",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "manualy",
+                                "list"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "text",
+                        "type": "text",
+                        "label": "Text"
+                    },
+                    {
+                        "name": "blocks",
+                        "type": "text",
+                        "label": "Blocks"
+                    },
+                    {
+                        "name": "thread_ts",
+                        "type": "text",
+                        "label": "Thread message ID (time stamp)"
+                    },
+                    {
+                        "name": "reply_broadcast",
+                        "type": "boolean",
+                        "label": "Reply broadcast"
+                    },
+                    {
+                        "name": "link_names",
+                        "type": "boolean",
+                        "label": "Link names"
+                    },
+                    {
+                        "name": "parse",
+                        "type": "boolean",
+                        "label": "Parse message text"
+                    },
+                    {
+                        "name": "mrkdwn",
+                        "type": "boolean",
+                        "label": "Use markdown"
+                    },
+                    {
+                        "name": "unfurl_links",
+                        "type": "boolean",
+                        "label": "Unfurl primarily text-based content"
+                    },
+                    {
+                        "name": "unfurl_media",
+                        "type": "boolean",
+                        "label": "Unfurl media content"
+                    },
+                    {
+                        "name": "icon_emoji",
+                        "type": "text",
+                        "label": "Icon emoji"
+                    },
+                    {
+                        "name": "icon_url",
+                        "type": "url",
+                        "label": "Icon url"
+                    },
+                    {
+                        "name": "username",
+                        "type": "text",
+                        "label": "User name"
+                    },
+                    {
+                        "name": "channelType",
+                        "type": "select",
+                        "label": "Channel type",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "public",
+                                "private",
+                                "im",
+                                "mpim"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "idType",
+                        "type": "select",
+                        "label": "ID type",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "channel",
+                                "user",
+                                "username"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "channel",
+                        "type": "select",
+                        "label": "User (Channel ID)",
+                        "required": true
+                    }
+                ],
+                "advanced": true
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": [
+            {
+                "moduleIds": [
+                    24
+                ],
+                "content": "<p>Replace {company} in the prompt with your company name.</p><p></p><p>For best practices on using conversation IDs, cost savings, managing knowledge files, protecting your agent from common vulnerabilities and more, check out our <a href=\"https://academy.make.com/bundles/automation-to-ai-agents-advanced-builder\" target=\"_blank\">AI Agents course</a>.</p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            }
+        ]
+    }
+}

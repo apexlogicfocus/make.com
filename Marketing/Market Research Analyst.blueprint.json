@@ -1,0 +1,1036 @@
+{
+    "name": "Market Research Analyst",
+    "flow": [
+        {
+            "id": 2,
+            "module": "fillout:newSubmission",
+            "version": 1,
+            "parameters": {
+                "__IMTHOOK__": null
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0,
+                    "messages": [
+                        {
+                            "category": "setupreq",
+                            "severity": "error",
+                            "message": "The module is not set up."
+                        }
+                    ]
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTHOOK__": {
+                            "data": {
+                                "editable": "false"
+                            },
+                            "label": "Make Local Agents - Marketing Research Analyst"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTHOOK__",
+                        "type": "hook:fillout",
+                        "label": "Webhook",
+                        "required": true
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "submissionId",
+                        "type": "text",
+                        "label": "Submission ID"
+                    },
+                    {
+                        "name": "submissionTime",
+                        "type": "date",
+                        "label": "Submission time"
+                    },
+                    {
+                        "name": "answers",
+                        "spec": [
+                            {
+                                "name": "rxnX",
+                                "type": "text",
+                                "label": "Submit the website URL you want to analyze"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Answers"
+                    },
+                    {
+                        "name": "urlParams",
+                        "spec": [],
+                        "type": "collection",
+                        "label": "URL Parameters"
+                    },
+                    {
+                        "name": "calculations",
+                        "spec": [],
+                        "type": "collection",
+                        "label": "Calculations"
+                    },
+                    {
+                        "name": "scheduling",
+                        "spec": [],
+                        "type": "collection",
+                        "label": "Scheduling"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 1,
+            "module": "ai-local-agent:RunLocalAIAgent",
+            "version": 0,
+            "parameters": {
+                "makeConnectionId": 13270
+            },
+            "mapper": {
+                "files": [],
+                "message": "URL to scrape and analyze:{{2.answers.rxnX}}",
+                "timeout": "",
+                "threadId": "",
+                "outputType": "text",
+                "modelConfig": {
+                    "recursionLimit": "300",
+                    "iterationsFromHistoryCount": "10"
+                },
+                "defaultModel": "gpt-5.2",
+                "systemPrompt": "You are a Market Research Analyst Agent specializing in competitive intelligence and market analysis through web research.\n\nINPUT FORMAT\n\nYou will receive:\n- company_url: The URL to analyze (required)\n\nAVAILABLE TOOLS\n\nResearch Tools:\n\"Scrape website\" - Extract content from URLs (Firecrawl integration)\n\"Search web\" - Find additional market intelligence (Make AI Web Search)\n\nData Storage Tools:\n\"Create scrape record\" - Store raw scraped data (Airtable \"Raw Scrapes\")\n\"Create analysis record\" - Store analysis results (Airtable \"Analysis Reports\")\n  YOU MUST POPULATE THESE FIELDS:\n    - Title: \"[Company Name] - Market Analysis\"\n    - Company Name: Extract from website\n    - AI Analysis Summary: Your complete comprehensive analysis (long text)\n    - Key Insights: 3-5 bullet points of most important findings (long text)\n    - Competitive Intelligence: Competitive positioning and advantages analysis (long text)\n    - Category: select from: Competitor | Pricing | Features | News | Product | Strategy\n\nYOUR WORKFLOW\nWhen you receive a research request:\n\nSTEP 1: SCRAPE THE WEBSITE (MANDATORY)\n- Call \"Scrape website\" with the provided company_url\n- Call \"Create scrape record\" with Status: \"Processing\"\n\nSTEP 2: CONDUCT WEB SEARCH (MANDATORY)\n- You MUST always perform web search to gather additional context\n- Gather recent information, market context, and competitive intelligence\n\nSTEP 3: ANALYZE THE CONTENT\nCreate your analysis in THREE separate sections that will populate specific Airtable fields:\n\nAI ANALYSIS SUMMARY FIELD\nWrite a comprehensive analysis (500-800 words) covering:\n\n Company Overview\n- Company name and industry\n- Primary products/services\n- Value proposition\n- Target market\n\nProduct Analysis\n- Key offerings\n- Pricing strategy (if available)\n- Feature highlights\n- Technology stack (if evident)\n\nMarket Insights\n- Recent news or developments\n- Growth indicators\n- Strategic direction\n- Partnerships or integrations\n\nKey Insights Fields\nProvide 3-5 bullet points:\n- Most important insight number 1\n- Most important insight number 2\n- Most important insight number 3\n- Notable strengths and weaknesses\n- Opportunities for competitive response\n\nCompetitive Intelligence Field\nWrite focused competitive analysis (200-300 words):\n- Unique selling points\n- Competitive advantages identified\n- Competitive disadvantages or gaps\n- Market positioning assessment\n- Differentiators from competitors\n\nSTEP 4: STORE THE ANALYSIS\n- Call \"Create analysis record\" tool and populate ALL required fields:\n  - Title: \"[Company Name] - Market Analysis\"\n  - Company Name: Extracted company name\n  - AI Analysis Summary: Your complete analysis from Step 3\n  - Key Insights: Your bullet points from Step 3\n  - Competitive Intelligence: Your competitive analysis from Step 3\n  - Category: Choose ONE that best fits: Competitor, Pricing, Features, News, Product, or Strategy\n\nFORMATTING GUIDELINES\nUse text with clear structure and section headers formatted by using #, ## and ### for headings. Use no other markdown than headers. Follow the format:\n\n## Company Overview\nCompany details here...\n\n## Product Analysis\nDetails here...\n\n## Market Insights\nInsights here...\n\nFor Key Insights field, use simple bullet format:\n\n- First key insight with explanation\n- Second key insight with explanation\n- Third key insight with explanation\n\n## Quality Standards\nComprehensive: Cover all major aspects in AI Analysis Summary\nObjective: Present facts and observations without bias\nStructured: Use clear sections with headers in all caps\nActionable: Provide insights that inform decision-making\nSourced: Reference where information was found\nComplete: All three analysis fields must be populated with substantial content\n\nIMPORTANT NOTES\n- MANDATORY: You must ALWAYS perform BOTH \"Scrape website\" AND \"Search web\" before creating analysis\n- Your analysis output goes INTO the Airtable fields via \"Create analysis records\" - you don't display it separately\n- Store ALL raw content in scrape records - don't filter or truncate\n- When information is unavailable, state this explicitly in your analysis\n- CRITICAL: Populate all three analysis fields - they are separate Airtable columns\n- Choose only ONE category from the available options\n- Never make assumptions - always base analysis on scraped and searched data\n- Run once only each of the tools, not more",
+                "makeConnectionId": 13270
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0,
+                    "name": "Market Research Analyst"
+                },
+                "restore": {
+                    "expect": {
+                        "files": {
+                            "mode": "chose"
+                        },
+                        "outputType": {
+                            "label": "Text"
+                        },
+                        "defaultModel": {
+                            "mode": "chose",
+                            "label": "GPT-5.2",
+                            "nested": []
+                        },
+                        "makeConnectionId": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "ai-provider"
+                            },
+                            "label": "My OpenAI connection"
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "name": "makeConnectionId",
+                        "type": "account:ai-provider,openai-gpt-3,anthropic-claude,gemini-ai-q9zyjp,ai-agent-foundry-openai,ai-agent-foundry-non-openai,mistral-ai,cohere,groq,ai-agent-xai,amazon-bedrock,ai-agent-openai-compatible",
+                        "label": "Connection",
+                        "required": true
+                    },
+                    {
+                        "name": "systemPrompt",
+                        "type": "text",
+                        "label": "Instructions"
+                    },
+                    {
+                        "name": "message",
+                        "type": "text",
+                        "label": "Input",
+                        "required": true
+                    },
+                    {
+                        "name": "files",
+                        "spec": [
+                            {
+                                "name": "fileName",
+                                "type": "filename",
+                                "label": "File name",
+                                "semantic": "file:name"
+                            },
+                            {
+                                "name": "data",
+                                "type": "buffer",
+                                "label": "Data",
+                                "semantic": "file:data"
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Input files"
+                    },
+                    {
+                        "name": "threadId",
+                        "type": "text",
+                        "label": "Conversation ID"
+                    },
+                    {
+                        "name": "modelConfig",
+                        "spec": [
+                            {
+                                "name": "tokenLimit",
+                                "type": "hidden",
+                                "label": "Max output tokens"
+                            },
+                            {
+                                "name": "recursionLimit",
+                                "type": "hidden",
+                                "label": "Steps per agent call"
+                            },
+                            {
+                                "name": "iterationsFromHistoryCount",
+                                "type": "number",
+                                "label": "Maximum number of agent runs in conversation history"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Model configuration"
+                    },
+                    {
+                        "name": "timeout",
+                        "type": "number",
+                        "label": "Timeout",
+                        "validate": {
+                            "max": 600,
+                            "min": 120
+                        }
+                    },
+                    {
+                        "name": "outputType",
+                        "type": "select",
+                        "label": "Output schema",
+                        "validate": {
+                            "enum": [
+                                "text",
+                                "make-schema"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "defaultModel",
+                        "type": "select",
+                        "label": "Model",
+                        "required": true
+                    }
+                ]
+            },
+            "tools": [
+                {
+                    "name": "Create Analysis record",
+                    "description": "Creates a new record in Airtable to store the Analysis.",
+                    "flow": [
+                        {
+                            "id": 8,
+                            "module": "airtable:ActionCreateRecord",
+                            "version": 3,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "base": "app4k8ts0kZlYoRWU",
+                                "table": "tblQHczyPyXSYayhi",
+                                "record": {
+                                    "fld2P1r0I8adVsJjb": "Market Research Analyst Agent",
+                                    "fld6ziiMaDhBCznSy": "{{1.record.fld6ziiMaDhBCznSy}}",
+                                    "fldHb3aDfgP857tEf": "{{1.record.fldHb3aDfgP857tEf}}",
+                                    "fldaGEcTs8c55mWyX": "{{1.record.fldaGEcTs8c55mWyX}}",
+                                    "fldlYGOOI9nOiqFUT": "{{1.record.fldlYGOOI9nOiqFUT}}",
+                                    "fldruWmSL8YXgD1B7": "{{1.record.fldruWmSL8YXgD1B7}}",
+                                    "fldsM4BmVcnHzV8ZN": "{{1.record.fldsM4BmVcnHzV8ZN}}",
+                                    "fldwJLFqqqaVkJhVe": "{{1.record.fldwJLFqqqaVkJhVe}}"
+                                },
+                                "typecast": true,
+                                "useColumnId": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 650,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "base": {
+                                            "label": "Make Local Agents - Market Research Analyst"
+                                        },
+                                        "table": {
+                                            "label": "Analysis Reports",
+                                            "nested": [
+                                                {
+                                                    "name": "record",
+                                                    "spec": [
+                                                        {
+                                                            "name": "fldruWmSL8YXgD1B7",
+                                                            "type": "text",
+                                                            "label": "Title"
+                                                        },
+                                                        {
+                                                            "name": "fldwJLFqqqaVkJhVe",
+                                                            "type": "text",
+                                                            "label": "Related URLs",
+                                                            "multiline": true
+                                                        },
+                                                        {
+                                                            "name": "fldsM4BmVcnHzV8ZN",
+                                                            "type": "text",
+                                                            "label": "Company Name"
+                                                        },
+                                                        {
+                                                            "name": "fldaGEcTs8c55mWyX",
+                                                            "type": "text",
+                                                            "label": "AI Analysis Summary"
+                                                        },
+                                                        {
+                                                            "name": "fldHb3aDfgP857tEf",
+                                                            "type": "text",
+                                                            "label": "Key Insights"
+                                                        },
+                                                        {
+                                                            "name": "fldlYGOOI9nOiqFUT",
+                                                            "type": "text",
+                                                            "label": "Competitive Intelligence"
+                                                        },
+                                                        {
+                                                            "name": "fld6ziiMaDhBCznSy",
+                                                            "type": "text",
+                                                            "label": "Category"
+                                                        },
+                                                        {
+                                                            "name": "fld2P1r0I8adVsJjb",
+                                                            "type": "text",
+                                                            "label": "Analyzed By"
+                                                        }
+                                                    ],
+                                                    "type": "collection",
+                                                    "label": "Record"
+                                                }
+                                            ]
+                                        },
+                                        "typecast": {
+                                            "mode": "chose"
+                                        },
+                                        "useColumnId": {
+                                            "mode": "chose"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "airtable3"
+                                            },
+                                            "label": "Wayne (User ID: usrgLe644AAnic3Nv)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:airtable3,airtable2",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "base",
+                                        "type": "select",
+                                        "label": "Base",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "typecast",
+                                        "type": "boolean",
+                                        "label": "Smart links",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "useColumnId",
+                                        "type": "boolean",
+                                        "label": "Use Column ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "table",
+                                        "type": "select",
+                                        "label": "Table",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "record",
+                                        "spec": [
+                                            {
+                                                "name": "fldruWmSL8YXgD1B7",
+                                                "type": "text",
+                                                "label": "Title"
+                                            },
+                                            {
+                                                "name": "fldwJLFqqqaVkJhVe",
+                                                "type": "text",
+                                                "label": "Related URLs"
+                                            },
+                                            {
+                                                "name": "fldsM4BmVcnHzV8ZN",
+                                                "type": "text",
+                                                "label": "Company Name"
+                                            },
+                                            {
+                                                "name": "fldaGEcTs8c55mWyX",
+                                                "type": "text",
+                                                "label": "AI Analysis Summary"
+                                            },
+                                            {
+                                                "name": "fldHb3aDfgP857tEf",
+                                                "type": "text",
+                                                "label": "Key Insights"
+                                            },
+                                            {
+                                                "name": "fldlYGOOI9nOiqFUT",
+                                                "type": "text",
+                                                "label": "Competitive Intelligence"
+                                            },
+                                            {
+                                                "name": "fld6ziiMaDhBCznSy",
+                                                "type": "text",
+                                                "label": "Category"
+                                            },
+                                            {
+                                                "name": "fld2P1r0I8adVsJjb",
+                                                "type": "text",
+                                                "label": "Analyzed By"
+                                            }
+                                        ],
+                                        "type": "collection",
+                                        "label": "Record"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Create a Scrape Record",
+                    "description": "Creates a new record in Airtable which stores the Scrape data",
+                    "flow": [
+                        {
+                            "id": 6,
+                            "module": "airtable:ActionCreateRecord",
+                            "version": 3,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "base": "app4k8ts0kZlYoRWU",
+                                "table": "tblKPdgn0o0ljhF0M",
+                                "record": {
+                                    "fldCHP8yOJldWQfKG": "{{2.answers.rxnX}}",
+                                    "fldfokNxzbG4eZ9yR": "Complete",
+                                    "fldmYtOg44sWedCJi": "{{1.record.fldmYtOg44sWedCJi}}",
+                                    "fldsGdJqRkrQ6Y7iV": "{{1.record.fldsGdJqRkrQ6Y7iV}}"
+                                },
+                                "typecast": true,
+                                "useColumnId": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 850,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "base": {
+                                            "label": "Make Local Agents - Market Research Analyst"
+                                        },
+                                        "table": {
+                                            "label": "Raw Scrapes",
+                                            "nested": [
+                                                {
+                                                    "name": "record",
+                                                    "spec": [
+                                                        {
+                                                            "name": "fldCHP8yOJldWQfKG",
+                                                            "type": "text",
+                                                            "label": "URL"
+                                                        },
+                                                        {
+                                                            "name": "fldsGdJqRkrQ6Y7iV",
+                                                            "type": "text",
+                                                            "label": "Scraped Content",
+                                                            "multiline": true
+                                                        },
+                                                        {
+                                                            "mode": "edit",
+                                                            "name": "fldfokNxzbG4eZ9yR",
+                                                            "type": "select",
+                                                            "label": "Status",
+                                                            "dynamic": true,
+                                                            "options": [
+                                                                {
+                                                                    "label": "Processing",
+                                                                    "value": "Processing"
+                                                                },
+                                                                {
+                                                                    "label": "Complete",
+                                                                    "value": "Complete"
+                                                                },
+                                                                {
+                                                                    "label": "Failed",
+                                                                    "value": "Failed"
+                                                                }
+                                                            ],
+                                                            "validate": false
+                                                        },
+                                                        {
+                                                            "name": "fldmYtOg44sWedCJi",
+                                                            "type": "number",
+                                                            "label": "Word Count"
+                                                        }
+                                                    ],
+                                                    "type": "collection",
+                                                    "label": "Record"
+                                                }
+                                            ]
+                                        },
+                                        "record": {
+                                            "nested": {
+                                                "fldfokNxzbG4eZ9yR": {
+                                                    "mode": "chose",
+                                                    "label": "Complete"
+                                                }
+                                            }
+                                        },
+                                        "typecast": {
+                                            "mode": "chose"
+                                        },
+                                        "useColumnId": {
+                                            "mode": "chose"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "airtable3"
+                                            },
+                                            "label": "Wayne (User ID: usrgLe644AAnic3Nv)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:airtable3,airtable2",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "base",
+                                        "type": "select",
+                                        "label": "Base",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "typecast",
+                                        "type": "boolean",
+                                        "label": "Smart links",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "useColumnId",
+                                        "type": "boolean",
+                                        "label": "Use Column ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "table",
+                                        "type": "select",
+                                        "label": "Table",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "record",
+                                        "spec": [
+                                            {
+                                                "name": "fldCHP8yOJldWQfKG",
+                                                "type": "text",
+                                                "label": "URL"
+                                            },
+                                            {
+                                                "name": "fldsGdJqRkrQ6Y7iV",
+                                                "type": "text",
+                                                "label": "Scraped Content"
+                                            },
+                                            {
+                                                "mode": "edit",
+                                                "name": "fldfokNxzbG4eZ9yR",
+                                                "type": "select",
+                                                "label": "Status"
+                                            },
+                                            {
+                                                "name": "fldmYtOg44sWedCJi",
+                                                "type": "number",
+                                                "label": "Word Count"
+                                            }
+                                        ],
+                                        "type": "collection",
+                                        "label": "Record"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Search web",
+                    "description": "Generates a response from web search.",
+                    "flow": [
+                        {
+                            "id": 5,
+                            "module": "make-ai-web-search:generateAResponse",
+                            "version": 1,
+                            "parameters": {},
+                            "mapper": {
+                                "input": "Search for recent news, product information, and competitive intelligence about the company at {{2.answers.rxnX}}\n\nFocus on:\n- Company announcements and press releases from the last 6 months\n- Product launches and feature updates\n- Funding news or growth metrics\n- Customer case studies or testimonials\n- Competitor comparisons or market positioning\n- Pricing information if publicly available\n\nPrioritize official sources and recent information.",
+                                "parseJson": false,
+                                "user_location": {
+                                    "type": "approximate"
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 1050
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "parseJson": {
+                                            "mode": "chose"
+                                        },
+                                        "user_location": {
+                                            "nested": {
+                                                "country": {
+                                                    "mode": "chose",
+                                                    "label": "Empty"
+                                                },
+                                                "timezone": {
+                                                    "mode": "chose",
+                                                    "label": "Empty"
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "expect": [
+                                    {
+                                        "name": "input",
+                                        "type": "text",
+                                        "label": "Text",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "parseJson",
+                                        "type": "boolean",
+                                        "label": "Parse JSON in response",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "user_location",
+                                        "spec": [
+                                            {
+                                                "name": "type",
+                                                "type": "hidden"
+                                            },
+                                            {
+                                                "name": "city",
+                                                "type": "text",
+                                                "label": "City"
+                                            },
+                                            {
+                                                "name": "country",
+                                                "type": "select",
+                                                "label": "Country"
+                                            },
+                                            {
+                                                "name": "region",
+                                                "type": "text",
+                                                "label": "Region"
+                                            },
+                                            {
+                                                "name": "timezone",
+                                                "type": "select",
+                                                "label": "Timezone"
+                                            }
+                                        ],
+                                        "type": "collection",
+                                        "label": "User Location"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Scrape a Website",
+                    "description": "Used to scrape a URL and get its content",
+                    "flow": [
+                        {
+                            "id": 4,
+                            "module": "firecrawl:Scrape",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "url": "{{1.url}}",
+                                "maxAge": "172800000",
+                                "mobile": false,
+                                "formats": [
+                                    "markdown"
+                                ],
+                                "headers": {},
+                                "timeout": "30000",
+                                "blockAds": true,
+                                "location": {
+                                    "country": "{{1.location.country}}"
+                                },
+                                "integration": "make",
+                                "storeInCache": true,
+                                "onlyMainContent": true,
+                                "removeBase64Images": true,
+                                "skipTlsVerification": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 1250,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "proxy": {
+                                            "mode": "chose",
+                                            "label": "Empty"
+                                        },
+                                        "mobile": {
+                                            "mode": "chose"
+                                        },
+                                        "formats": {
+                                            "mode": "chose"
+                                        },
+                                        "blockAds": {
+                                            "mode": "chose"
+                                        },
+                                        "location": {
+                                            "nested": {
+                                                "languages": {
+                                                    "mode": "chose"
+                                                }
+                                            }
+                                        },
+                                        "excludeTags": {
+                                            "mode": "chose"
+                                        },
+                                        "includeTags": {
+                                            "mode": "chose"
+                                        },
+                                        "storeInCache": {
+                                            "mode": "chose"
+                                        },
+                                        "onlyMainContent": {
+                                            "mode": "chose"
+                                        },
+                                        "removeBase64Images": {
+                                            "mode": "chose"
+                                        },
+                                        "skipTlsVerification": {
+                                            "mode": "chose"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "firecrawl"
+                                            },
+                                            "label": "My Firecrawl connection"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:firecrawl",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "integration",
+                                        "type": "hidden",
+                                        "label": "Integration"
+                                    },
+                                    {
+                                        "name": "url",
+                                        "type": "text",
+                                        "label": "URL to Scrape",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "formats",
+                                        "type": "select",
+                                        "label": "Formats",
+                                        "multiple": true,
+                                        "validate": {
+                                            "enum": [
+                                                "markdown",
+                                                "html",
+                                                "rawHtml",
+                                                "links",
+                                                "summary"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "customFormat",
+                                        "type": "json",
+                                        "label": "Advanced Format (JSON)"
+                                    },
+                                    {
+                                        "name": "onlyMainContent",
+                                        "type": "boolean",
+                                        "label": "Only Main Content"
+                                    },
+                                    {
+                                        "name": "includeTags",
+                                        "spec": {
+                                            "name": "value",
+                                            "type": "text",
+                                            "label": "Tag"
+                                        },
+                                        "type": "array",
+                                        "label": "Include Tags"
+                                    },
+                                    {
+                                        "name": "excludeTags",
+                                        "spec": {
+                                            "name": "value",
+                                            "type": "text",
+                                            "label": "Tag"
+                                        },
+                                        "type": "array",
+                                        "label": "Exclude Tags"
+                                    },
+                                    {
+                                        "name": "maxAge",
+                                        "type": "integer",
+                                        "label": "Max Age (ms)",
+                                        "validate": {
+                                            "max": 172800000,
+                                            "min": 3600000
+                                        }
+                                    },
+                                    {
+                                        "name": "headers",
+                                        "spec": [
+                                            {
+                                                "name": "key",
+                                                "type": "text",
+                                                "label": "Header Name"
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "text",
+                                                "label": "Header Value"
+                                            }
+                                        ],
+                                        "type": "collection",
+                                        "label": "Headers"
+                                    },
+                                    {
+                                        "name": "waitFor",
+                                        "type": "integer",
+                                        "label": "Wait Time (ms)",
+                                        "validate": {
+                                            "min": 0
+                                        }
+                                    },
+                                    {
+                                        "name": "mobile",
+                                        "type": "boolean",
+                                        "label": "Mobile Emulation"
+                                    },
+                                    {
+                                        "name": "skipTlsVerification",
+                                        "type": "boolean",
+                                        "label": "Skip TLS Verification"
+                                    },
+                                    {
+                                        "name": "timeout",
+                                        "type": "integer",
+                                        "label": "Timeout (ms)",
+                                        "validate": {
+                                            "max": 60000,
+                                            "min": 1000
+                                        }
+                                    },
+                                    {
+                                        "name": "location",
+                                        "spec": [
+                                            {
+                                                "name": "country",
+                                                "type": "text",
+                                                "label": "Country Code (ISO 3166-1 alpha-2)"
+                                            },
+                                            {
+                                                "name": "languages",
+                                                "spec": {
+                                                    "name": "value",
+                                                    "type": "text",
+                                                    "label": "Language"
+                                                },
+                                                "type": "array",
+                                                "label": "Preferred Languages (See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language)"
+                                            }
+                                        ],
+                                        "type": "collection",
+                                        "label": "Location Settings"
+                                    },
+                                    {
+                                        "name": "removeBase64Images",
+                                        "type": "boolean",
+                                        "label": "Remove Base64 Images"
+                                    },
+                                    {
+                                        "name": "blockAds",
+                                        "type": "boolean",
+                                        "label": "Block Ads"
+                                    },
+                                    {
+                                        "name": "proxy",
+                                        "type": "select",
+                                        "label": "Proxy type",
+                                        "validate": {
+                                            "enum": [
+                                                "basic",
+                                                "stealth"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "storeInCache",
+                                        "type": "boolean",
+                                        "label": "Store in Cache"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": [
+            {
+                "moduleIds": [
+                    2
+                ],
+                "content": "<p>This activity looks at new submissions via a Fillout form. Each submission contains a URL to a website that will be analyzed by the agent.</p><p></p><p>Resource:</p><p><a href=\"https://form.go9x.com/t/fbKqNmJnwAus\" target=\"_blank\">Form.</a></p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            },
+            {
+                "moduleIds": [
+                    4
+                ],
+                "content": "<p>The scraping settings can be adapted to the user preferences</p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            },
+            {
+                "moduleIds": [
+                    1
+                ],
+                "content": "<p>Map the URL from the Fillout Forms app to the Input field.</p><p></p><p>For best practices on using conversation IDs, cost savings, managing knowledge files, protecting your agent from common vulnerabilities and more, check out our <a href=\"https://academy.make.com/bundles/automation-to-ai-agents-advanced-builder\" target=\"_blank\">AI Agents course</a>.</p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            },
+            {
+                "moduleIds": [
+                    8
+                ],
+                "content": "<p>Resources:</p><p><a href=\"https://airtable.com/invite/l?inviteId=invx2dsArVxPfgIOn&amp;inviteToken=e9112511a1ba0ee848fa5f487f55afceb39eef4591bd977f944d0c79134ee08c&amp;utm_medium=email&amp;utm_source=product_team&amp;utm_content=transactional-alerts\" target=\"_blank\">Database - Read access</a>. </p><p><a href=\"https://airtable.com/invite/l?inviteId=invRyJZ2AjpJQu592&amp;inviteToken=c78ac78d0f2c558137097cce163da6f185dece4156fe16e7595db74ce41ea0f4&amp;utm_medium=email&amp;utm_source=product_team&amp;utm_content=transactional-alerts\" target=\"_blank\">Interface to visualize the report</a></p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            },
+            {
+                "moduleIds": [
+                    6
+                ],
+                "content": "<p>Resources:</p><p><a href=\"https://airtable.com/invite/l?inviteId=invx2dsArVxPfgIOn&amp;inviteToken=e9112511a1ba0ee848fa5f487f55afceb39eef4591bd977f944d0c79134ee08c&amp;utm_medium=email&amp;utm_source=product_team&amp;utm_content=transactional-alerts\" target=\"_blank\">Database - Read access</a>. </p><p><a href=\"https://airtable.com/invite/l?inviteId=invRyJZ2AjpJQu592&amp;inviteToken=c78ac78d0f2c558137097cce163da6f185dece4156fe16e7595db74ce41ea0f4&amp;utm_medium=email&amp;utm_source=product_team&amp;utm_content=transactional-alerts\" target=\"_blank\">Interface to visualize the report</a></p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            }
+        ]
+    }
+}

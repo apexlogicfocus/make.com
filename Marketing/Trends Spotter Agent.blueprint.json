@@ -1,0 +1,443 @@
+{
+    "name": "Trends Spotter Agent",
+    "flow": [
+        {
+            "id": 2,
+            "module": "util:SetVariables",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+                "scope": "roundtrip",
+                "variables": [
+                    {
+                        "name": "Market",
+                        "value": "Kitchen Gadgets"
+                    }
+                ]
+            },
+            "metadata": {
+                "designer": {
+                    "x": -356,
+                    "y": -339,
+                    "name": "Adjust This Value"
+                },
+                "restore": {
+                    "expect": {
+                        "scope": {
+                            "label": "One cycle"
+                        },
+                        "variables": {
+                            "items": [
+                                null
+                            ]
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "name": "variables",
+                        "spec": [
+                            {
+                                "name": "name",
+                                "type": "text",
+                                "label": "Variable name",
+                                "required": true
+                            },
+                            {
+                                "name": "value",
+                                "type": "any",
+                                "label": "Variable value"
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Variables"
+                    },
+                    {
+                        "name": "scope",
+                        "type": "select",
+                        "label": "Variable lifetime",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "roundtrip",
+                                "execution"
+                            ]
+                        }
+                    }
+                ],
+                "interface": [
+                    {
+                        "name": "Market",
+                        "type": "any",
+                        "label": "Market"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "module": "ai-local-agent:RunLocalAIAgent",
+            "version": 0,
+            "parameters": {
+                "makeConnectionId": 14380410
+            },
+            "mapper": {
+                "defaultModel": "gpt-5.5",
+                "reasoningEffort": "low",
+                "systemPrompt": "You are a trend intelligence agent. You have two tools available: (1) Web Search and (2) Create a Document (Google Docs).\n\n**Your inputs:**\n- Market/Topic to scan: {{2.Market}}\n\n**Your task (high level):**\n1. Research emerging trends, signals, and shifts using Web Search.\n2. Synthesize findings into a structured trends briefing designed to surface what's new, what's growing, and what's worth watching.\n3. Create a Google Doc containing the final briefing by calling the **Create a Document** tool.\n\n## Step-by-step workflow\n\n### 1) Research (tool use required)\n\n- Use **Web Search** to identify emerging trends, rising technologies, new entrants, shifting consumer behaviors, and notable funding or investment activity within the specified industry or category.\n- Run multiple searches using varied angles:\n  - Start broad (e.g., \"[industry] trends 2025\")\n  - Then narrow into specific dimensions: startups, funding rounds, consumer sentiment shifts, technology adoption, regulatory momentum, demographic changes.\n- Prioritize signals that are **early-stage or accelerating** — not already mainstream consensus.\n- Cross-check important claims across multiple sources.\n\n### 2) Select and classify signals\n\n- Identify up to **10** distinct trend signals worth surfacing.\n\nFor each signal, include:\n- Signal name (a concise label you write — not just a headline)\n- Source name and URL\n- 2–3 sentence summary of what's happening and why it matters\n- Signal strength tag: one of [Early Signal | Building Momentum | Accelerating | Mainstream Approaching]\n- Category tag: one of [Technology | Consumer Behavior | Funding & Investment | Startup Activity | Regulatory & Policy | Demographic Shift | Business Model Innovation | Supply Chain & Operations | Cultural & Social | Other]\n\n### 3) Write the briefing as clean HTML (no markdown)\n\nYour entire briefing must be **valid HTML** that can be passed directly to Google Docs.\n\nStructure the briefing as follows:\n\n- **Report title** — include the industry/category and the date\n- **Executive snapshot** — 3–4 sentences summarizing the overall trend landscape: what direction is this space moving, what's the dominant theme, and what should the reader pay closest attention to?\n- **Signals to watch** — the individual trend signals from step 2, ordered from strongest/most actionable to most nascent\n- **Pattern map** — a short section (3–5 sentences) identifying any connections between the signals: are multiple trends reinforcing each other? Is there a common underlying driver? Any tensions or contradictions?\n- **Blind spots & gaps** — honestly note areas where search results were thin or where important adjacent trends may exist but weren't well-covered\n\nFormatting rules:\n- Use: `<h1>` for the report title, `<h2>` for section headings, `<h3>` for signal names, `<p>` for paragraphs, `<a href=\"\">` for source links, `<strong>` for emphasis, and `<table>` if comparing signals side by side.\n- Do **not** include `<html>`, `<head>`, or `<body>` wrapper tags.\n- Do **not** wrap the output in code blocks or markdown.\n- Keep HTML simple and Google-Docs-friendly.\n\n### 4) Create the Google Doc (tool call required)\n\nAfter the HTML briefing is complete:\n- Call the **Create a Document** tool.\n- Set:\n  - `name`: format as \"Trend Scan — [Industry/Category] — [Date]\"\n  - `content`: the full HTML briefing you wrote\n\n### 5) Final response\n\nAfter the tool call succeeds:\n- Return the Google Doc link (and/or document ID) to the user.\n- Do not reprint the entire HTML in the final chat response unless explicitly asked.\n\n**Rules:**\n- Only include information you found through Web Search and can link to a source.\n- If searches turn up very little, say so honestly — do not invent or pad signals.\n- Favor **emerging and accelerating** signals over well-established facts everyone already knows.\n- If a signal is speculative or based on limited data, say so — don't present weak signals with the same confidence as strong ones.\n- Keep summaries concise and jargon-light.\n\n**Tone:** Forward-looking, analytical, and direct. Write as if briefing a strategist or investor who wants to know what's changing before everyone else notices.",
+                "message": "{{2.Market}}",
+                "files": [],
+                "threadId": "",
+                "modelConfig": {
+                    "recursionLimit": 300,
+                    "iterationsFromHistoryCount": "10"
+                },
+                "timeout": "",
+                "outputType": "text"
+            },
+            "metadata": {
+                "designer": {
+                    "x": -56,
+                    "y": -339,
+                    "name": "Trends Spotter Agent"
+                },
+                "restore": {
+                    "parameters": {
+                        "makeConnectionId": {
+                            "label": "My Make's AI Provider connection",
+                            "data": {
+                                "scoped": "true",
+                                "connection": "ai-provider"
+                            }
+                        }
+                    },
+                    "expect": {
+                        "defaultModel": {
+                            "mode": "chose",
+                            "label": "GPT-5.5The frontier model for complex professional work, excelling at coding, tool-heavy agents, and long-context retrieval"
+                        },
+                        "reasoningEffort": {
+                            "mode": "chose",
+                            "label": "Low"
+                        },
+                        "files": {
+                            "mode": "chose"
+                        },
+                        "outputType": {
+                            "label": "Text"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "makeConnectionId",
+                        "type": "account:ai-provider,openai-gpt-3,anthropic-claude,gemini-ai-q9zyjp,ai-agent-foundry-openai,ai-agent-foundry-non-openai,mistral-ai,cohere,groq,ai-agent-xai,amazon-bedrock,ai-agent-openai-compatible",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "defaultModel",
+                        "type": "select",
+                        "label": "Model",
+                        "required": true
+                    },
+                    {
+                        "name": "reasoningEffort",
+                        "type": "select",
+                        "label": "Reasoning effort",
+                        "validate": {
+                            "enum": [
+                                "none",
+                                "low",
+                                "medium",
+                                "high"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "systemPrompt",
+                        "type": "text",
+                        "label": "Instructions"
+                    },
+                    {
+                        "name": "message",
+                        "type": "text",
+                        "label": "Input",
+                        "required": true
+                    },
+                    {
+                        "name": "files",
+                        "type": "array",
+                        "label": "Input files",
+                        "spec": [
+                            {
+                                "name": "fileName",
+                                "type": "filename",
+                                "label": "File name",
+                                "semantic": "file:name"
+                            },
+                            {
+                                "name": "data",
+                                "type": "buffer",
+                                "label": "Data",
+                                "semantic": "file:data"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "threadId",
+                        "type": "text",
+                        "label": "Conversation ID"
+                    },
+                    {
+                        "name": "modelConfig",
+                        "type": "collection",
+                        "label": "Model configuration",
+                        "spec": [
+                            {
+                                "name": "tokenLimit",
+                                "type": "hidden",
+                                "label": "Max output tokens"
+                            },
+                            {
+                                "name": "recursionLimit",
+                                "type": "hidden",
+                                "label": "Steps per agent call"
+                            },
+                            {
+                                "name": "iterationsFromHistoryCount",
+                                "type": "number",
+                                "label": "Maximum conversation history"
+                            }
+                        ]
+                    },
+                    {
+                        "name": "timeout",
+                        "type": "number",
+                        "label": "Step timeout",
+                        "validate": {
+                            "min": 120,
+                            "max": 600
+                        }
+                    },
+                    {
+                        "name": "outputType",
+                        "type": "select",
+                        "label": "Response format",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "text",
+                                "make-schema",
+                                "udt-schema"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "tools": [
+                {
+                    "name": "Web Search",
+                    "description": "Generates a response from web search.",
+                    "flow": [
+                        {
+                            "id": 4,
+                            "module": "make-ai-web-search:generateAResponse",
+                            "version": 1,
+                            "parameters": {},
+                            "mapper": {
+                                "input": "{{3.input}}",
+                                "parseJson": false,
+                                "user_location": {
+                                    "type": "approximate"
+                                }
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 244,
+                                    "y": -89
+                                },
+                                "expect": [
+                                    {
+                                        "name": "input",
+                                        "type": "text",
+                                        "label": "Text",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "parseJson",
+                                        "type": "boolean",
+                                        "label": "Parse JSON in response",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "user_location",
+                                        "spec": [
+                                            {
+                                                "name": "type",
+                                                "type": "hidden"
+                                            },
+                                            {
+                                                "name": "city",
+                                                "type": "text",
+                                                "label": "City"
+                                            },
+                                            {
+                                                "name": "country",
+                                                "type": "select",
+                                                "label": "Country"
+                                            },
+                                            {
+                                                "name": "region",
+                                                "type": "text",
+                                                "label": "Region"
+                                            },
+                                            {
+                                                "name": "timezone",
+                                                "type": "select",
+                                                "label": "Timezone"
+                                            }
+                                        ],
+                                        "type": "collection",
+                                        "label": "User Location"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Create a Document",
+                    "description": "Creates a new Google document by adding the content of HTML format.",
+                    "flow": [
+                        {
+                            "id": 5,
+                            "module": "google-docs:createADocument",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": 14380435
+                            },
+                            "mapper": {
+                                "name": "{{3.name}}",
+                                "content": "{{3.content}}",
+                                "destination": "drive",
+                                "header": false,
+                                "footer": false,
+                                "folderId": "/"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 244,
+                                    "y": 111
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "label": "My Google connection",
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            }
+                                        }
+                                    },
+                                    "expect": {
+                                        "content": {
+                                            "extra": {
+                                                "aiHelp": "This parameter supports HTML format."
+                                            }
+                                        },
+                                        "destination": {
+                                            "label": "My Drive"
+                                        },
+                                        "folderId": {
+                                            "mode": "chose",
+                                            "path": [
+                                                "/"
+                                            ]
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "name",
+                                        "type": "text",
+                                        "label": "Name",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "content",
+                                        "type": "text",
+                                        "label": "Content",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "destination",
+                                        "type": "select",
+                                        "label": "Choose a Drive",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "drive",
+                                                "share",
+                                                "team"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "header",
+                                        "type": "boolean",
+                                        "label": "Insert a Header",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "footer",
+                                        "type": "boolean",
+                                        "label": "Insert a Footer",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "folderId",
+                                        "type": "folder",
+                                        "label": "New Document's Location",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": []
+    }
+}

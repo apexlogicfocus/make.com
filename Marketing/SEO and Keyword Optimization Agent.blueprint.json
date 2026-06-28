@@ -1,0 +1,844 @@
+{
+    "name": "SEO and Keyword Optimization Agent",
+    "flow": [
+        {
+            "id": 10,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "metadata": {
+                "designer": {
+                    "x": -9,
+                    "y": -19,
+                    "messages": [
+                        {
+                            "category": "setup",
+                            "severity": "error",
+                            "message": "Webhook: Value must not be empty."
+                        }
+                    ]
+                }
+            }
+        },
+        {
+            "id": 3,
+            "module": "ai-local-agent:RunLocalAIAgent",
+            "version": 0,
+            "parameters": {
+                "makeConnectionId": null
+            },
+            "mapper": {
+                "files": [],
+                "message": "BLOG POST DATA\nPost ID: \"[post_id]\"\nPost Title: \"[post_title]\"\nTarget Audience: \"[target_audience]\"\nTarget Keywords: \"[target_keywords]\"\nCurrent Meta Description: \"[current_meta_description\"]\nOriginal Content: \"[original_content]\"\nCurrent Word Count: \"[current_word_count]\"\nTarget Word Count: \"[target_word_count]\"\nOptimization Report URL: \"[optimization_report]\"",
+                "timeout": "",
+                "threadId": "[post_id_title]",
+                "outputType": "text",
+                "modelConfig": {
+                    "recursionLimit": "300",
+                    "iterationsFromHistoryCount": "10"
+                },
+                "defaultModel": "gpt-5.2",
+                "systemPrompt": "You are an SEO and Keyword Optimization Agent. Your role is to analyze blog posts, identify SEO improvement opportunities, and generate optimized content that ranks well in search engines while maintaining high quality and readability.\n\nEXECUTION MODES\n\nYou operate in two distinct modes:\n\nMODE 1: FIRST EXECUTION (Generate Optimization Report)\nTriggered when: User presses \"Generate Optimization Report\" button in Notion\nActions: Analyze content, retrieve guidelines, create optimization report, update Notion record with report URL\n\nMODE 2: SECOND EXECUTION, which you will recognize because it will be part of a Thread (Generate Final Blog Post)\nTriggered when: User presses \"Generate Final Blog Post\" button after reviewing optimization report\nActions: Retrieve optimization report, apply approved changes, create final optimized blog post, update Notion record with final post URL\n\nWORKFLOW\n\nMODE 1 WORKFLOW:\n1. Receive blog post data from Notion trigger (Post ID, Title, Original Content, Target Keywords, Current Meta Description, Target Audience, Current Word Count, Target Word Count)\n2. Retrieve SEO Guidelines using \"Get SEO Guidelines\" tool\n3. Retrieve Brand Voice Guidelines using \"Get Brand Voice Guidelines\" tool\n4. Analyze the original content for: keyword usage and density, content structure, word count, readability, meta description effectiveness, content gaps, internal linking opportunities, CTA presence, FAQ potential, image suggestions, technical SEO elements\n5. Generate comprehensive Optimization Report using \"Create Optimization Report\" tool in HTML format\n6. Update Notion record with report URL using \"Update Blog Post Notion record\" tool\n\nMODE 2 WORKFLOW:\n1. Receive confirmation that user has reviewed and approved optimization report\n2. Retrieve the reviewed Optimization Report using \"Get Optimization Report\" tool\n3. Apply all approved optimizations to create the final blog post\n4. Generate Final Blog Post using \"Create Final Blog post\" tool in HTML format\n5. Update Notion record with final post URL using \"Update Blog Post Notion record\" tool\n\nOPTIMIZATION REPORT STRUCTURE (MODE 1)\n\nFormat in clean HTML with these sections:\n\n1. Executive Summary\nInclude: Post title, Post ID, Analysis Date, Target Keywords, Target Audience, Current vs Target Word Count, brief SEO health overview (2-3 sentences), priority recommendations\n\n2. SEO Score Breakdown\nTable with scores (0-100) for: Keyword Optimization, Content Structure, Readability, Meta Description, Content Depth, Technical SEO, Overall SEO Score (average)\n\n3. Keyword Analysis\n- Primary Keywords: List target keywords and current usage frequency\n- Keyword Placement Opportunities: Where keywords should appear, current vs recommended density, related LSI keywords to include\n\n4. Content Structure Analysis\n- Current Structure: Outline existing heading hierarchy\n- Recommended Structure: Improved heading hierarchy with keyword-optimized H2/H3 suggestions\n- Missing Sections: List sections to add (Introduction, Examples, Case Studies, FAQ, Conclusion)\n\n5. Content Gaps and Expansion Opportunities\nIdentify topics needing more depth. For each gap: topic name, why it should be included, suggested content (2-3 sentences)\n\n6. Readability Improvements\n- Current Issues: Sentence length, paragraph length, transition words, active vs passive voice\n- Recommendations: Specific suggestions for improving readability\n\n7. Meta Description Optimization\n- Current Meta Description: Show current, character count, issues\n- Optimized Meta Description: Improved version (120-160 characters, includes keyword, compelling and action-oriented)\n\n8. Technical SEO Recommendations\n- Title Tag: Optimized title (50-60 characters, includes primary keyword)\n- URL Structure: Recommended URL slug\n- Internal Linking: Suggest 3-5 relevant internal links\n- External Linking: Suggest authoritative external sources\n- Image Optimization: Recommend images with alt text\n\n9. Content Enhancements\n- Examples and Case Studies: Suggest specific examples to include\n- Visual Elements: Diagrams, charts, infographics, code snippets, screenshots recommendations\n- FAQ Section: Suggest 5-7 questions with brief answer outlines\n\n10. Call-to-Action\nRecommend specific CTAs based on target audience and content goals\n\n11. Competitive Analysis Insights\nBased on SEO guidelines, identify what competitors likely do that this content should include\n\n12. Priority Action Items\nRanked list: High Priority (biggest SEO impact), Medium Priority (important but less critical), Low Priority (nice-to-have)\n\n13. Estimated Impact\n- Expected word count: Target number\n- Projected SEO score improvement: Current to projected\n- Expected ranking potential: Assessment based on competition and keyword difficulty\n\nFINAL BLOG POST STRUCTURE (MODE 2)\n\nFormat in clean HTML with:\n\n1. Metadata Section (for reference)\nTitle, Meta Description, Target Keywords, Recommended URL in HTML comments\n\n2. Introduction\nHook reader with compelling statement/question, include primary keyword naturally, state what post covers, address target audience's pain point\n\n3. Main Content\nClear H2/H3 headings following optimization report recommendations, keywords naturally in headings, scannable sections, short paragraphs (3-4 sentences), transition phrases, bullet points and numbered lists, examples/case studies/data points, specific actionable advice, code snippets or technical details where relevant\n\n4. Visual Element Placeholders\n<!-- [IMAGE: Description with suggested alt text] -->\n\n5. FAQ Section\n5-7 relevant questions with concise answers\n\n6. Conclusion\nSummarize key points, reinforce main takeaway, include primary keyword once more, provide clear next steps\n\n7. Call-to-Action\nCompelling CTA based on recommendations\n\n8. Internal and External Links\nNaturally incorporate 3-5 internal links with descriptive anchor text and 2-3 external links to authoritative sources throughout content\n\nANALYSIS GUIDELINES\n\nSEO Best Practices:\n- Primary keyword in: title, first paragraph, at least one H2, conclusion, meta description\n- Keyword density: 1-2% (natural usage)\n- Sentence length: Average 15-20 words\n- Paragraph length: 2-4 sentences\n- Subheadings: Every 200-300 words\n- Transition words: At least 30% of sentences\n- Title tag: 50-60 characters, front-load primary keyword\n- Meta description: 120-160 characters, include keyword and CTA\n- URL: Short, descriptive, includes keyword, uses hyphens\n\nContent Quality Standards:\n- Meet or exceed target word count\n- Provide actionable, specific advice\n- Include examples, data, or case studies\n- Address user intent comprehensively\n- Use active voice (80%+ target)\n- Include multimedia suggestions\n- Add schema markup recommendations\n- Ensure E-E-A-T principles\n\nBrand Voice Alignment:\n- Maintain consistent tone\n- Use approved terminology from brand guidelines\n- Match sophistication level to target audience\n- Reflect brand personality while optimizing for SEO\n\nTOOL USAGE\n\nTool 1: Get SEO Guidelines\nPurpose: Retrieves SEO best practices document\nWhen to Use: First step in MODE 1\n\nTool 2: Get Brand Voice Guidelines\nPurpose: Retrieves brand voice and style guide\nWhen to Use: First step in MODE 1\n\nTool 3: Create Optimization Report\nPurpose: Creates Google Doc with SEO optimization analysis\nInput: Complete HTML-formatted optimization report\nWhen to Use: After completing analysis in MODE 1\n\nTool 4: Update Blog Post Notion record\nPurpose: Updates Notion database with either optimization report URL or final blog post URL\nInput: Post record ID, and ONE of the following:\n- Optimization Report URL (for MODE 1)\n- Final Blog Post URL (for MODE 2)\nFields to Update: \"Optimization Report URL\" OR \"Final Blog Post URL\"\nCRITICAL: Only provide the URL for the field you want to update. For the other field, use \"ignore\" to prevent erasing existing content. Never update both fields in the same call.\nWhen to Use: \n- In MODE 1: After creating optimization report (update \"Optimization Report URL\" only, use \"ignore\" for \"Final Blog Post URL\")\n- In MODE 2: After creating final blog post (update \"Final Blog Post URL\" only, use \"ignore\" for \"Optimization Report URL\")\n\nTool 5: Get Optimization Report\nPurpose: Retrieves optimization report that user reviewed and potentially edited\nInput: Google Doc ID of the Report created in MODE 1\nWhen to Use: First step in MODE 2\n\nTool 6: Create Final Blog post\nPurpose: Creates Google Doc with final optimized blog post\nInput: Complete HTML-formatted final blog post\nWhen to Use: After retrieving and processing optimization report in MODE 2\n\nIMPORTANT REMINDERS\n\n- Always determine which mode you're in based on execution context\n- MODE 1: Focus on analysis and recommendations only\n- MODE 2: Implement all recommendations from optimization report\n- Maintain brand voice while optimizing for SEO\n- Never sacrifice readability for keyword density\n- All keyword usage must feel natural and add value\n- Always reference both SEO and brand voice guidelines\n- Be specific in recommendations, avoid generic advice\n- Provide concrete examples in optimization report\n- In final blog post, ensure optimizations are seamlessly integrated\n- Calculate SEO scores objectively based on measurable criteria\n- When using \"Update Blog Post Notion record\" tool, always use \"ignore\" for the field you're not updating to preserve existing data\n- Complete all tool calls in sequence for each mode without skipping steps"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 298,
+                    "y": -18,
+                    "messages": [
+                        {
+                            "category": "setup",
+                            "severity": "error",
+                            "message": "Connection: Value must not be empty."
+                        }
+                    ]
+                },
+                "restore": {
+                    "expect": {
+                        "files": {
+                            "mode": "chose"
+                        },
+                        "outputType": {
+                            "label": "Text"
+                        },
+                        "defaultModel": {
+                            "mode": "chose",
+                            "label": "GPT-5.2The most advanced model with superior reasoning, speed, and instruction-following for complex, real-world tasks",
+                            "nested": []
+                        }
+                    },
+                    "parameters": {
+                        "makeConnectionId": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "ai-provider"
+                            },
+                            "label": "My OpenAI connection"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "makeConnectionId",
+                        "type": "account:ai-provider,openai-gpt-3,anthropic-claude,gemini-ai-q9zyjp,ai-agent-foundry-openai,ai-agent-foundry-non-openai,mistral-ai,cohere,groq,ai-agent-xai,amazon-bedrock,ai-agent-openai-compatible",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "defaultModel",
+                        "type": "select",
+                        "label": "Model",
+                        "required": true
+                    },
+                    {
+                        "name": "systemPrompt",
+                        "type": "text",
+                        "label": "Instructions"
+                    },
+                    {
+                        "name": "message",
+                        "type": "text",
+                        "label": "Input",
+                        "required": true
+                    },
+                    {
+                        "name": "files",
+                        "spec": [
+                            {
+                                "name": "fileName",
+                                "type": "filename",
+                                "label": "File name",
+                                "semantic": "file:name"
+                            },
+                            {
+                                "name": "data",
+                                "type": "buffer",
+                                "label": "Data",
+                                "semantic": "file:data"
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Input files"
+                    },
+                    {
+                        "name": "threadId",
+                        "type": "text",
+                        "label": "Conversation ID"
+                    },
+                    {
+                        "name": "modelConfig",
+                        "spec": [
+                            {
+                                "name": "tokenLimit",
+                                "type": "hidden",
+                                "label": "Max output tokens"
+                            },
+                            {
+                                "name": "recursionLimit",
+                                "type": "hidden",
+                                "label": "Steps per agent call"
+                            },
+                            {
+                                "name": "iterationsFromHistoryCount",
+                                "type": "number",
+                                "label": "Maximum conversation history"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Model configuration"
+                    },
+                    {
+                        "name": "timeout",
+                        "type": "number",
+                        "label": "Step timeout",
+                        "validate": {
+                            "max": 600,
+                            "min": 120
+                        }
+                    },
+                    {
+                        "name": "outputType",
+                        "type": "select",
+                        "label": "Response format",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "text",
+                                "make-schema"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "tools": [
+                {
+                    "name": "Create Final Blog post",
+                    "description": "Creates Google Doc with final optimized blog post\nInput: Complete HTML-formatted final blog post",
+                    "flow": [
+                        {
+                            "id": 9,
+                            "module": "google-docs:createADocument",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "name": "[post_id] - Reviewed",
+                                "footer": false,
+                                "header": false,
+                                "content": "{{3.content}}",
+                                "folderId": "1234abcd",
+                                "destination": "share"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 250,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "content": {
+                                            "extra": {
+                                                "aiHelp": "This parameter supports HTML format."
+                                            }
+                                        },
+                                        "folderId": {
+                                            "mode": "edit",
+                                            "path": []
+                                        },
+                                        "destination": {
+                                            "label": "Shared With Me"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "Wayne (l.govender@make.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "name",
+                                        "type": "text",
+                                        "label": "Name",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "content",
+                                        "type": "text",
+                                        "label": "Content",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "destination",
+                                        "type": "select",
+                                        "label": "Choose a Drive",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "drive",
+                                                "share",
+                                                "team"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "header",
+                                        "type": "boolean",
+                                        "label": "Insert a Header",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "footer",
+                                        "type": "boolean",
+                                        "label": "Insert a Footer",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "folderId",
+                                        "type": "folder",
+                                        "label": "New Document's Location",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get Optimization Report",
+                    "description": "Retrieves optimization report that user reviewed and potentially edited.\nInput: Document ID of the document created by the Agent that stores the Optimization Report. Check in the Thread",
+                    "flow": [
+                        {
+                            "id": 8,
+                            "module": "google-docs:getADocument",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "filter": "image",
+                                "select": "map",
+                                "document": "{{3.document}}",
+                                "includeTabsContent": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 450,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "filter": {
+                                            "label": "Image"
+                                        },
+                                        "select": {
+                                            "label": "By Mapping"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "Wayne (l.govender@make.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Get Content of a Document",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "map",
+                                                "dropdown"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "includeTabsContent",
+                                        "type": "boolean",
+                                        "label": "Include Tabs Content",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "filter",
+                                        "type": "select",
+                                        "label": "Filter",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "image",
+                                                "drawing",
+                                                "chart"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "document",
+                                        "type": "text",
+                                        "label": "Document ID",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Update Blog Post Notion record",
+                    "description": "Updates Notion database with optimization report URL or Final Blog post URL (if empty, don't erase the content of the field)",
+                    "flow": [
+                        {
+                            "id": 7,
+                            "module": "notion:updateADatabaseItem",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "select": "list",
+                                "updateBy": "data_source",
+                                "data_source": "123"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 650,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "select": {
+                                            "label": "Select from the list"
+                                        },
+                                        "updateBy": {
+                                            "mode": "chose",
+                                            "label": "Data SourceThis must be used if your database has multiple data sources."
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "notion2"
+                                            },
+                                            "label": "My Notion Public connection (Make Account’s Space)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:notion2,notion3",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "updateBy",
+                                        "type": "select",
+                                        "label": "Update By",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "data_source",
+                                                "database"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Enter a Data Source ID",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "map",
+                                                "list"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "data_source",
+                                        "type": "text",
+                                        "label": "Data Source ID",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Create Optimization Report",
+                    "description": "Creates a Google Doc with the SEO optimization analysis. In HTML format.",
+                    "flow": [
+                        {
+                            "id": 6,
+                            "module": "google-docs:createADocument",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "name": "[post_id_title] - Optimization Report",
+                                "footer": false,
+                                "header": false,
+                                "content": "{{3.content}}",
+                                "folderId": "123abc",
+                                "destination": "share"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 850,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "content": {
+                                            "extra": {
+                                                "aiHelp": "This parameter supports HTML format."
+                                            }
+                                        },
+                                        "folderId": {
+                                            "mode": "edit",
+                                            "path": []
+                                        },
+                                        "destination": {
+                                            "label": "Shared With Me"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "Wayne (l.govender@make.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "name",
+                                        "type": "text",
+                                        "label": "Name",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "content",
+                                        "type": "text",
+                                        "label": "Content",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "destination",
+                                        "type": "select",
+                                        "label": "Choose a Drive",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "drive",
+                                                "share",
+                                                "team"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "header",
+                                        "type": "boolean",
+                                        "label": "Insert a Header",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "footer",
+                                        "type": "boolean",
+                                        "label": "Insert a Footer",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "folderId",
+                                        "type": "folder",
+                                        "label": "New Document's Location",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get Brand Voice Guidelines",
+                    "description": "Retrieves the brand voice and style guide",
+                    "flow": [
+                        {
+                            "id": 5,
+                            "module": "google-docs:getADocument",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "filter": "image",
+                                "select": "map",
+                                "document": "123abc",
+                                "includeTabsContent": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 1050,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "filter": {
+                                            "label": "Image"
+                                        },
+                                        "select": {
+                                            "label": "By Mapping"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "Wayne (l.govender@make.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Get Content of a Document",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "map",
+                                                "dropdown"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "includeTabsContent",
+                                        "type": "boolean",
+                                        "label": "Include Tabs Content",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "filter",
+                                        "type": "select",
+                                        "label": "Filter",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "image",
+                                                "drawing",
+                                                "chart"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "document",
+                                        "type": "text",
+                                        "label": "Document ID",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get SEO guidelines",
+                    "description": "Retrieves the SEO best practices document",
+                    "flow": [
+                        {
+                            "id": 4,
+                            "module": "google-docs:getADocument",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "filter": "image",
+                                "select": "map",
+                                "document": "123abc",
+                                "includeTabsContent": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 600,
+                                    "y": 1250,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "filter": {
+                                            "label": "Image"
+                                        },
+                                        "select": {
+                                            "label": "By Mapping"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "Wayne (l.govender@make.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Get Content of a Document",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "map",
+                                                "dropdown"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "includeTabsContent",
+                                        "type": "boolean",
+                                        "label": "Include Tabs Content",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "filter",
+                                        "type": "select",
+                                        "label": "Filter",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "image",
+                                                "drawing",
+                                                "chart"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "document",
+                                        "type": "text",
+                                        "label": "Document ID",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": [
+            {
+                "moduleIds": [
+                    3
+                ],
+                "content": "<p>First run the scenario so the webhook learns your data structure then map the data to the Input field. Replace the values in [].</p><p></p><p>For best practices on using conversation IDs, cost savings, managing knowledge files, protecting your agent from common vulnerabilities and more, check out our <a href=\"https://academy.make.com/bundles/automation-to-ai-agents-advanced-builder\" target=\"_blank\">AI Agents course</a>. </p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            },
+            {
+                "moduleIds": [
+                    9
+                ],
+                "content": "<p>Replace the values in [].</p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            },
+            {
+                "moduleIds": [
+                    6
+                ],
+                "content": "<p>Replace the values in [].</p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            }
+        ]
+    }
+}

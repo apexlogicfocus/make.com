@@ -1,0 +1,682 @@
+{
+    "name": "Social Media Comment Responder",
+    "flow": [
+        {
+            "id": 1,
+            "module": "youtube:watchNewComments",
+            "version": 4,
+            "parameters": {
+                "limit": 1,
+                "search": "",
+                "channelId": "UCKtumk72QC3XBb_VWSMQAHg",
+                "__IMTCONN__": null,
+                "watchCommentsIn": "channel",
+                "moderationStatus": "published"
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0,
+                    "messages": [
+                        {
+                            "category": "epochreq",
+                            "severity": "error",
+                            "message": "You must first choose from which point do you want to start processing your emails."
+                        },
+                        {
+                            "category": "setupreq",
+                            "severity": "error",
+                            "message": "The module is not set up."
+                        }
+                    ]
+                },
+                "restore": {
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "youtube"
+                            },
+                            "label": "My YouTube connection"
+                        },
+                        "watchCommentsIn": {
+                            "label": "Channel"
+                        },
+                        "moderationStatus": {
+                            "label": "Published"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:youtube",
+                        "label": "Connection",
+                        "required": true
+                    },
+                    {
+                        "name": "watchCommentsIn",
+                        "type": "select",
+                        "label": "Watch Comments in",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "video",
+                                "channel"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "moderationStatus",
+                        "type": "select",
+                        "label": "Moderation Status",
+                        "validate": {
+                            "enum": [
+                                "published",
+                                "heldForReview",
+                                "likelySpam"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "search",
+                        "type": "text",
+                        "label": "Search Terms"
+                    },
+                    {
+                        "name": "limit",
+                        "type": "uinteger",
+                        "label": "Limit",
+                        "required": true
+                    },
+                    {
+                        "name": "channelId",
+                        "type": "text",
+                        "label": "Channel ID",
+                        "required": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "module": "airtable:ActionSearchRecords",
+            "version": 3,
+            "parameters": {
+                "__IMTCONN__": null
+            },
+            "mapper": {
+                "base": "appcHKSwKPqIyWBnf",
+                "table": "tblJ27LAezdrLmveU",
+                "formula": "{Video ID}=\"{{1.videoId}}\"",
+                "maxRecords": "1",
+                "useColumnId": false
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0,
+                    "name": "Get Video information",
+                    "messages": [
+                        {
+                            "category": "setupreq",
+                            "severity": "error",
+                            "message": "The module is not set up."
+                        }
+                    ]
+                },
+                "restore": {
+                    "expect": {
+                        "base": {
+                            "mode": "chose",
+                            "label": "Make Local Agents - Social Media Comment Responder"
+                        },
+                        "sort": {
+                            "mode": "chose"
+                        },
+                        "view": {
+                            "mode": "chose"
+                        },
+                        "table": {
+                            "mode": "chose",
+                            "label": "Videos"
+                        },
+                        "fields": {
+                            "mode": "chose"
+                        },
+                        "useColumnId": {
+                            "mode": "chose"
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "airtable3"
+                            },
+                            "label": "Wayne (User ID: usrgLe644AAnic3Nv)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:airtable3,airtable2",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "base",
+                        "type": "select",
+                        "label": "Base",
+                        "required": true
+                    },
+                    {
+                        "name": "useColumnId",
+                        "type": "boolean",
+                        "label": "Use Column ID",
+                        "required": true
+                    },
+                    {
+                        "name": "table",
+                        "type": "select",
+                        "label": "Table",
+                        "required": true
+                    },
+                    {
+                        "name": "formula",
+                        "type": "text",
+                        "label": "Formula"
+                    },
+                    {
+                        "name": "maxRecords",
+                        "type": "integer",
+                        "label": "Limit"
+                    },
+                    {
+                        "name": "sort",
+                        "spec": [
+                            {
+                                "name": "field",
+                                "type": "select",
+                                "label": "Field",
+                                "dynamic": true,
+                                "options": []
+                            },
+                            {
+                                "name": "direction",
+                                "type": "select",
+                                "label": "Direction",
+                                "options": [
+                                    {
+                                        "label": "Descending",
+                                        "value": "desc"
+                                    },
+                                    {
+                                        "label": "Ascending",
+                                        "value": "asc"
+                                    }
+                                ]
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Sort"
+                    },
+                    {
+                        "name": "view",
+                        "type": "select",
+                        "label": "View"
+                    },
+                    {
+                        "name": "fields",
+                        "type": "select",
+                        "label": "Output Fields",
+                        "multiple": true
+                    }
+                ]
+            }
+        },
+        {
+            "id": 2,
+            "module": "ai-local-agent:RunLocalAIAgent",
+            "version": 0,
+            "parameters": {
+                "makeConnectionId": 13270
+            },
+            "mapper": {
+                "files": [],
+                "message": "VIDEO INFORMATION\nVideo Title: \"{{3.`Video name`}}\"\nVideo ID: \"{{1.videoId}}\"\nVideo Description: \"{{3.`Video description`}}\"\nVideo Transcript: \"{{3.`Video transcript`}}\"\n\nCOMMENT INFORMATION\nComment ID: \"{{1.commentId}}\"\nComment Content: \"{{1.textOriginal}}\"\nCommenter Username: \"{{1.authorDisplayName}}\"",
+                "timeout": "",
+                "threadId": "{{1.commentId}}",
+                "outputType": "text",
+                "modelConfig": {
+                    "recursionLimit": "300",
+                    "iterationsFromHistoryCount": "10"
+                },
+                "defaultModel": "gpt-5.2",
+                "systemPrompt": "You are a YouTube comment response agent. Your role is to evaluate comments and determine the appropriate response action.\n\nYou will receive the following information:\n\nVideo Title: The title of the YouTube video\nVideo ID: The unique identifier for the video\nVideo Description: The description provided by the video creator\nVideo Transcript: The full transcript of the video content\nComment ID: The unique identifier for the comment\nComment Content: The actual text of the comment\nCommenter Username: The name of the user who made the comment\n\nYour task involves three steps:\n\nSTEP 1: EVALUATE IF THE COMMENT DESERVES A RESPONSE\n\nA comment deserves a response if it meets any of these criteria:\n\n- Asks a genuine question about the video content\n- Provides meaningful feedback or insights\n- Shares a relevant personal experience related to the video topic\n- Points out important information or corrections\n- Expresses confusion that you can help clarify\n- Shows high engagement and thoughtfulness\n- Offers praise, appreciation, or positive feedback about the content\n\nA comment does NOT deserve a response if:\n\n- It's spam or promotional content\n- It's purely hateful or abusive without constructive elements\n- It's a simple emoji or very short reaction like \"first!\" or \"nice\"\n- It's completely off-topic and unrelated to the video\n- It's a bot comment or copy-paste message\n\nSTEP 2: CLASSIFY THE COMMENT TYPE\n\nIf the comment deserves a response, determine if it is:\n\nA) A PRAISING COMMENT: The comment primarily expresses appreciation, compliments, or positive feedback about the video, content, or creator. Examples include \"Great video!\", \"This really helped me, thank you!\", \"Love your content!\", or similar expressions of gratitude and appreciation.\n\nB) OTHER ENGAGING COMMENT: Any other comment that deserves a response, including questions, meaningful feedback, personal experiences, corrections, or requests for clarification.\n\nSTEP 3: TAKE THE APPROPRIATE ACTION\n\nFor PRAISING COMMENTS (Type A):\n- Craft a short, warm response (1-2 sentences) thanking the commenter\n- Be genuine and friendly\n- Use the commenter's username naturally if appropriate\n- Use the \"Log answer\" tool to record and send this response automatically\n\nFor OTHER ENGAGING COMMENTS (Type B):\n- Craft a thoughtful response that:\n  * Directly addresses the commenter's point or question\n  * References specific parts of the video when relevant\n  * Is concise but complete (typically 1-4 sentences, longer if needed for clarity)\n  * Matches the tone of the comment\n  * Adds value to the conversation\n- Use the \"Involve human in the loop\" tool to send a Slack notification with the following format:\n\n🎬 *New YouTube Comment Needs Review*\n*Video*: [Video Title]\n*Commenter*: @[Username]\n*Comment*\n\n[Full comment text]\n\n*Proposed Response*\n\n[Your crafted response]\n\n🔗 <[Comment URL]|View Comment on YouTube>\n\nHOW TO CONSTRUCT THE COMMENT URL:\nThe comment URL follows this format:\nhttps://www.youtube.com/watch?v=[VIDEO_ID]&lc=[COMMENT_ID]\n\n\nFor comments that DO NOT deserve a response:\n- Use the \"Log answer\" tool without populating the response field\n- Include a brief note explaining why no response is needed\n\nAlways be respectful, helpful, and aim to foster positive community engagement on the channel.",
+                "makeConnectionId": 13270
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0
+                },
+                "restore": {
+                    "expect": {
+                        "files": {
+                            "mode": "chose"
+                        },
+                        "outputType": {
+                            "label": "Text"
+                        },
+                        "defaultModel": {
+                            "mode": "chose",
+                            "label": "GPT-5.2",
+                            "nested": []
+                        },
+                        "makeConnectionId": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "ai-provider"
+                            },
+                            "label": "My OpenAI connection"
+                        }
+                    }
+                },
+                "expect": [
+                    {
+                        "name": "makeConnectionId",
+                        "type": "account:ai-provider,openai-gpt-3,anthropic-claude,gemini-ai-q9zyjp,ai-agent-foundry-openai,ai-agent-foundry-non-openai,mistral-ai,cohere,groq,ai-agent-xai,amazon-bedrock,ai-agent-openai-compatible",
+                        "label": "Connection",
+                        "required": true
+                    },
+                    {
+                        "name": "systemPrompt",
+                        "type": "text",
+                        "label": "Instructions"
+                    },
+                    {
+                        "name": "message",
+                        "type": "text",
+                        "label": "Input",
+                        "required": true
+                    },
+                    {
+                        "name": "files",
+                        "spec": [
+                            {
+                                "name": "fileName",
+                                "type": "filename",
+                                "label": "File name",
+                                "semantic": "file:name"
+                            },
+                            {
+                                "name": "data",
+                                "type": "buffer",
+                                "label": "Data",
+                                "semantic": "file:data"
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Input files"
+                    },
+                    {
+                        "name": "threadId",
+                        "type": "text",
+                        "label": "Conversation ID"
+                    },
+                    {
+                        "name": "modelConfig",
+                        "spec": [
+                            {
+                                "name": "tokenLimit",
+                                "type": "hidden",
+                                "label": "Max output tokens"
+                            },
+                            {
+                                "name": "recursionLimit",
+                                "type": "hidden",
+                                "label": "Steps per agent call"
+                            },
+                            {
+                                "name": "iterationsFromHistoryCount",
+                                "type": "number",
+                                "label": "Maximum number of agent runs in conversation history"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Model configuration"
+                    },
+                    {
+                        "name": "timeout",
+                        "type": "number",
+                        "label": "Timeout",
+                        "validate": {
+                            "max": 600,
+                            "min": 120
+                        }
+                    },
+                    {
+                        "name": "outputType",
+                        "type": "select",
+                        "label": "Output schema",
+                        "validate": {
+                            "enum": [
+                                "text",
+                                "make-schema"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "defaultModel",
+                        "type": "select",
+                        "label": "Model",
+                        "required": true
+                    }
+                ]
+            },
+            "tools": [
+                {
+                    "name": "Involve Human in the Loop",
+                    "description": "Sends a Slack message with the Comment received, the Answer proposed and a link to the comment.",
+                    "flow": [
+                        {
+                            "id": 6,
+                            "module": "slack:CreateMessage",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "text": "{{2.text}}",
+                                "parse": false,
+                                "mrkdwn": true,
+                                "channel": "C06AQ2JA690",
+                                "channelType": "public",
+                                "channelWType": "list",
+                                "unfurl_links": false,
+                                "unfurl_media": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 650,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "parse": {
+                                            "mode": "chose"
+                                        },
+                                        "mrkdwn": {
+                                            "mode": "chose"
+                                        },
+                                        "channel": {
+                                            "mode": "chose",
+                                            "label": "log-testing"
+                                        },
+                                        "link_names": {
+                                            "mode": "chose"
+                                        },
+                                        "channelType": {
+                                            "label": "Public channel"
+                                        },
+                                        "channelWType": {
+                                            "label": "Select from the list"
+                                        },
+                                        "unfurl_links": {
+                                            "mode": "chose"
+                                        },
+                                        "unfurl_media": {
+                                            "mode": "chose"
+                                        },
+                                        "reply_broadcast": {
+                                            "mode": "chose"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "slack2"
+                                            },
+                                            "label": "Wayne (integromat.slack.com - l.govender)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:slack2,slack3",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "channelWType",
+                                        "type": "select",
+                                        "label": "Enter a channel ID or name",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "manualy",
+                                                "list"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "text",
+                                        "type": "text",
+                                        "label": "Text"
+                                    },
+                                    {
+                                        "name": "blocks",
+                                        "type": "text",
+                                        "label": "Blocks"
+                                    },
+                                    {
+                                        "name": "thread_ts",
+                                        "type": "text",
+                                        "label": "Thread message ID (time stamp)"
+                                    },
+                                    {
+                                        "name": "reply_broadcast",
+                                        "type": "boolean",
+                                        "label": "Reply broadcast"
+                                    },
+                                    {
+                                        "name": "link_names",
+                                        "type": "boolean",
+                                        "label": "Link names"
+                                    },
+                                    {
+                                        "name": "parse",
+                                        "type": "boolean",
+                                        "label": "Parse message text"
+                                    },
+                                    {
+                                        "name": "mrkdwn",
+                                        "type": "boolean",
+                                        "label": "Use markdown"
+                                    },
+                                    {
+                                        "name": "unfurl_links",
+                                        "type": "boolean",
+                                        "label": "Unfurl primarily text-based content"
+                                    },
+                                    {
+                                        "name": "unfurl_media",
+                                        "type": "boolean",
+                                        "label": "Unfurl media content"
+                                    },
+                                    {
+                                        "name": "icon_emoji",
+                                        "type": "text",
+                                        "label": "Icon emoji"
+                                    },
+                                    {
+                                        "name": "icon_url",
+                                        "type": "url",
+                                        "label": "Icon url"
+                                    },
+                                    {
+                                        "name": "username",
+                                        "type": "text",
+                                        "label": "User name"
+                                    },
+                                    {
+                                        "name": "channelType",
+                                        "type": "select",
+                                        "label": "Channel type",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "public",
+                                                "private",
+                                                "im",
+                                                "mpim"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "channel",
+                                        "type": "select",
+                                        "label": "Public channel",
+                                        "required": true
+                                    }
+                                ],
+                                "advanced": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Reply to a Comment",
+                    "description": "Creates a reply to the specified comment. Only if the received comment is easily recognised as a praise that deserves a short answer to thank them.",
+                    "flow": [
+                        {
+                            "id": 5,
+                            "module": "youtube:replyToAComment",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "content": "{{2.content}}",
+                                "commentId": "{{1.commentId}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 900,
+                                    "y": 850,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "youtube"
+                                            },
+                                            "label": "My YouTube connection (Wayne Govender <l.govender@make.com>)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:youtube",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "commentId",
+                                        "type": "text",
+                                        "label": "Comment ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "content",
+                                        "type": "text",
+                                        "label": "Content"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": [
+            {
+                "moduleIds": [
+                    3
+                ],
+                "content": "<p>The data extracted from the database for each video is:</p><ul><li>Video title</li><li>Video description</li><li>Video transcript</li></ul><p>Resources:</p><p><a href=\"https://airtable.com/invite/l?inviteId=invg1NC27LIaDwAjr&amp;inviteToken=2d5e2ee7c24028146e5fceb8db6f3b41313a76686e4dbeb136479b132b1df988&amp;utm_medium=email&amp;utm_source=product_team&amp;utm_content=transactional-alerts\" target=\"_blank\">Database - Read access</a></p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            },
+            {
+                "moduleIds": [
+                    1
+                ],
+                "content": "<p>The limit marks how many comments should be processed every time the scenario runs. Should be planned accordingly with the scheduling of the scenario.</p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            },
+            {
+                "moduleIds": [
+                    2
+                ],
+                "content": "<p>For best practices on using conversation IDs, cost savings, managing knowledge files, protecting your agent from common vulnerabilities and more, check out our <a href=\"https://academy.make.com/bundles/automation-to-ai-agents-advanced-builder\" target=\"_blank\">AI Agents course</a>.</p>",
+                "isFilterNote": false,
+                "metadata": {
+                    "color": "#9138FE"
+                }
+            }
+        ]
+    }
+}

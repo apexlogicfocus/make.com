@@ -1,0 +1,638 @@
+{
+    "name": "Interview Scorecard Agent",
+    "flow": [
+        {
+            "id": 2,
+            "module": "ai-local-agent:RunLocalAIAgent",
+            "version": 0,
+            "parameters": {
+                "makeConnectionId": null
+            },
+            "mapper": {
+                "files": [],
+                "message": "Run the agent",
+                "timeout": "",
+                "threadId": "",
+                "outputType": "text",
+                "modelConfig": {
+                    "recursionLimit": 300,
+                    "iterationsFromHistoryCount": "10"
+                },
+                "defaultModel": "gpt-5.5",
+                "systemPrompt": "You are an Interview Scorecard Assistant. Your job is to help the user generate a completed interview scorecard (in a new Google Doc) based on the interview’s Google Calendar event and its auto-generated notes/transcript document.\n\nOperating rules\n- Be systematic and confirm key identifiers before writing anything.\n- If you don’t have enough information to answer a scorecard item from the transcript, ask a targeted clarification question instead of guessing.\n- Use the available tools to fetch calendar events and document contents; do not hallucinate meeting details or transcript content.\n- Keep candidate/interview data private; only include what’s needed in the scorecard.\n\nWorkflow\n1) Identify the interview\n- First, ask the user for:\n  - The interview date (YYYY-MM-DD preferred), and\n  - Either the meeting name/title OR the candidate’s email.\n- Search Google Calendar using a time window covering that date (if unsure, widen to +/- 1 day) and a query containing the title keywords and/or candidate email.\n- If multiple likely events are found, present the top matches with start time, title, organizer, and any attendee/candidate indicators, then ask the user to confirm which one is correct.\n- If none are found, ask a single clarifying detail (exact title phrase, alternate date/timezone, or which calendar).\n\n2) Retrieve the transcript / notes doc\n- After the user confirms the correct event, fetch the full event details.\n- Look for a Google Docs link that contains the meeting notes/transcript (commonly in the event description, attachments, or related links).\n- If you can’t find a notes doc link, ask the user to paste the notes doc link.\n- When you have the doc link or ID, read the document content and extract the transcript/notes text.\n\n3) Retrieve the scorecard template\n- Ask the user for the link to the Google Doc scorecard template.\n- Read the template doc content and extract the questions/sections to be filled.\n- If the template is not clearly structured, infer a reasonable list of questions/sections, but keep the original wording whenever possible.\n\n4) Draft the filled scorecard\n- Use the transcript to answer each scorecard question with evidence-based, role-relevant detail.\n- Prefer concise bullet points and concrete examples from the transcript.\n- If uncertain or missing evidence, write “Not enough evidence from transcript” and ask the user a clarification question that would unblock that specific item.\n- If the scorecard includes ratings, only assign a rating when the template defines a scale or the transcript strongly supports it; otherwise ask what scale to use.\n\n5) Create the output Google Doc\n- Create a new Google Doc titled: “Scorecard – <Candidate> – <Role> – <Interview date>” (use best-available values).\n- IMPORTANT: When calling the \"Create a Document\" tool, submit the document body as **HTML** (the tool’s Content field expects HTML).\n- Write the final scorecard with clean formatting:\n  - Header with candidate/role/date\n  - One section per question with the answer underneath\n  - “Open questions / follow-ups” at the end if needed\n\n6) Deliver the result\n- Reply with the link to the created scorecard document plus a short list of any assumptions and remaining open questions.",
+                "reasoningEffort": "low"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0,
+                    "name": "Interview Scorecard Agent",
+                    "messages": [
+                        {
+                            "category": "setupreq",
+                            "severity": "error",
+                            "message": "The module is not set up."
+                        }
+                    ]
+                },
+                "restore": {
+                    "expect": {
+                        "files": {
+                            "mode": "chose"
+                        },
+                        "outputType": {
+                            "label": "Text"
+                        },
+                        "defaultModel": {
+                            "mode": "chose",
+                            "label": "GPT-5.5The frontier model for complex professional work, excelling at coding, tool-heavy agents, and long-context retrieval"
+                        },
+                        "systemPrompt": {
+                            "extra": {
+                                "label": "Instructions"
+                            }
+                        },
+                        "reasoningEffort": {
+                            "mode": "chose",
+                            "label": "Low"
+                        }
+                    },
+                    "parameters": {
+                        "makeConnectionId": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "ai-provider"
+                            },
+                            "label": "Make"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "makeConnectionId",
+                        "type": "account:ai-provider,openai-gpt-3,anthropic-claude,gemini-ai-q9zyjp,ai-agent-foundry-openai,ai-agent-foundry-non-openai,mistral-ai,cohere,groq,ai-agent-xai,amazon-bedrock,ai-agent-openai-compatible",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "defaultModel",
+                        "type": "select",
+                        "label": "Model",
+                        "required": true
+                    },
+                    {
+                        "name": "reasoningEffort",
+                        "type": "select",
+                        "label": "Reasoning effort",
+                        "validate": {
+                            "enum": [
+                                "none",
+                                "low",
+                                "medium",
+                                "high"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "systemPrompt",
+                        "type": "text",
+                        "label": "Instructions"
+                    },
+                    {
+                        "name": "message",
+                        "type": "text",
+                        "label": "Input",
+                        "required": true
+                    },
+                    {
+                        "name": "files",
+                        "spec": [
+                            {
+                                "name": "fileName",
+                                "type": "filename",
+                                "label": "File name",
+                                "semantic": "file:name"
+                            },
+                            {
+                                "name": "data",
+                                "type": "buffer",
+                                "label": "Data",
+                                "semantic": "file:data"
+                            }
+                        ],
+                        "type": "array",
+                        "label": "Input files"
+                    },
+                    {
+                        "name": "threadId",
+                        "type": "text",
+                        "label": "Conversation ID"
+                    },
+                    {
+                        "name": "modelConfig",
+                        "spec": [
+                            {
+                                "name": "tokenLimit",
+                                "type": "hidden",
+                                "label": "Max output tokens"
+                            },
+                            {
+                                "name": "recursionLimit",
+                                "type": "hidden",
+                                "label": "Steps per agent call"
+                            },
+                            {
+                                "name": "iterationsFromHistoryCount",
+                                "type": "number",
+                                "label": "Maximum conversation history"
+                            }
+                        ],
+                        "type": "collection",
+                        "label": "Model configuration"
+                    },
+                    {
+                        "name": "timeout",
+                        "type": "number",
+                        "label": "Step timeout",
+                        "validate": {
+                            "max": 600,
+                            "min": 120
+                        }
+                    },
+                    {
+                        "name": "outputType",
+                        "type": "select",
+                        "label": "Response format",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "text",
+                                "make-schema",
+                                "udt-schema"
+                            ]
+                        }
+                    }
+                ]
+            },
+            "tools": [
+                {
+                    "name": "Create a Document",
+                    "description": "Creates a new Google document by adding the content of HTML format.",
+                    "flow": [
+                        {
+                            "id": 3,
+                            "module": "google-docs:createADocument",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "name": "{{2.name}}",
+                                "footer": false,
+                                "header": false,
+                                "content": "{{2.content}}",
+                                "folderId": "/",
+                                "destination": "drive"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 300,
+                                    "y": 250,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "content": {
+                                            "extra": {
+                                                "aiHelp": "This parameter supports HTML format."
+                                            }
+                                        },
+                                        "folderId": {
+                                            "mode": "chose",
+                                            "path": [
+                                                "/"
+                                            ]
+                                        },
+                                        "destination": {
+                                            "label": "My Drive"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "Dimitris (d.kamaritis@make.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "name",
+                                        "type": "text",
+                                        "label": "Name",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "content",
+                                        "type": "text",
+                                        "label": "Content",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "destination",
+                                        "type": "select",
+                                        "label": "Choose a Drive",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "drive",
+                                                "share",
+                                                "team"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "header",
+                                        "type": "boolean",
+                                        "label": "Insert a Header",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "footer",
+                                        "type": "boolean",
+                                        "label": "Insert a Footer",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "folderId",
+                                        "type": "folder",
+                                        "label": "New Document's Location",
+                                        "required": true
+                                    }
+                                ],
+                                "advanced": true
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get Content of a Document",
+                    "description": "Gets a content of a document.",
+                    "flow": [
+                        {
+                            "id": 4,
+                            "module": "google-docs:getADocument",
+                            "version": 1,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "filter": "image",
+                                "select": "map",
+                                "document": "{{2.document}}",
+                                "includeTabsContent": false
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 300,
+                                    "y": 450,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "filter": {
+                                            "label": "Image"
+                                        },
+                                        "select": {
+                                            "label": "By Mapping"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "Dimitris (d.kamaritis@make.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Get Content of a Document",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "map",
+                                                "dropdown"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "includeTabsContent",
+                                        "type": "boolean",
+                                        "label": "Include Tabs Content",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "filter",
+                                        "type": "select",
+                                        "label": "Filter",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "image",
+                                                "drawing",
+                                                "chart"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "document",
+                                        "type": "text",
+                                        "label": "Document ID",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Search Events",
+                    "description": "Searches for events on the specified calendar.",
+                    "flow": [
+                        {
+                            "id": 5,
+                            "module": "google-calendar:searchEvents",
+                            "version": 5,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "q": "{{2.q}}",
+                                "limit": "{{2.limit}}",
+                                "timeMax": "{{2.timeMax}}",
+                                "timeMin": "{{2.timeMin}}",
+                                "calendar": "d.kamaritis@make.com",
+                                "singleEvents": true
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 300,
+                                    "y": 650,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "q": {
+                                            "extra": {
+                                                "aiHelp": "Searches for events containing the specified text."
+                                            }
+                                        },
+                                        "limit": {
+                                            "extra": {
+                                                "aiHelp": "Maximum number of results"
+                                            }
+                                        },
+                                        "orderBy": {
+                                            "mode": "chose"
+                                        },
+                                        "timeMin": {
+                                            "extra": {
+                                                "aiHelp": "Also processes events starting before the specified start date and overlapping with this date."
+                                            }
+                                        },
+                                        "calendar": {
+                                            "mode": "chose",
+                                            "label": "d.kamaritis@make.com (Primary Calendar)"
+                                        },
+                                        "eventTypes": {
+                                            "mode": "chose"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "Dimitris (d.kamaritis@make.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "calendar",
+                                        "type": "select",
+                                        "label": "Calendar ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "timeMin",
+                                        "time": true,
+                                        "type": "date",
+                                        "label": "Start Date"
+                                    },
+                                    {
+                                        "name": "timeMax",
+                                        "time": true,
+                                        "type": "date",
+                                        "label": "End Date"
+                                    },
+                                    {
+                                        "name": "updatedMin",
+                                        "time": true,
+                                        "type": "date",
+                                        "label": "Updated from"
+                                    },
+                                    {
+                                        "name": "singleEvents",
+                                        "type": "boolean",
+                                        "label": "Single Events",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "q",
+                                        "type": "text",
+                                        "label": "Query"
+                                    },
+                                    {
+                                        "name": "eventTypes",
+                                        "type": "select",
+                                        "label": "Event Types",
+                                        "multiple": true,
+                                        "validate": {
+                                            "enum": [
+                                                "default",
+                                                "fromGmail",
+                                                "focusTime",
+                                                "outOfOffice",
+                                                "workingLocation"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "orderBy",
+                                        "type": "select",
+                                        "label": "Order By",
+                                        "validate": {
+                                            "enum": [
+                                                "startTime",
+                                                "updated"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "limit",
+                                        "type": "uinteger",
+                                        "label": "Limit"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get an Event",
+                    "description": "Returns metadata for an event in the specific calendar.",
+                    "flow": [
+                        {
+                            "id": 6,
+                            "module": "google-calendar:getAnEvent",
+                            "version": 5,
+                            "parameters": {
+                                "__IMTCONN__": null
+                            },
+                            "mapper": {
+                                "event": "{{2.event}}",
+                                "calendar": "{{2.calendar}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": 300,
+                                    "y": 850,
+                                    "messages": [
+                                        {
+                                            "category": "setupreq",
+                                            "severity": "error",
+                                            "message": "The module is not set up."
+                                        }
+                                    ]
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "calendar": {
+                                            "mode": "edit"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "Dimitris (d.kamaritis@make.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "mode": "edit",
+                                        "name": "calendar",
+                                        "type": "select",
+                                        "label": "Calendar ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "event",
+                                        "type": "any",
+                                        "label": "Event ID",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": []
+    }
+}
