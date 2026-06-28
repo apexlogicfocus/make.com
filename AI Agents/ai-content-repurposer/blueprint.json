@@ -1,0 +1,154 @@
+{
+  "name": "AI Content Repurposer",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": { "hook": 0, "maxResults": 1 },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": { "parameters": { "hook": { "label": "New Content Published Webhook" } } }
+      }
+    },
+    {
+      "id": 2,
+      "module": "openai-gpt-3:CreateCompletion",
+      "version": 1,
+      "parameters": { "select": "chat" },
+      "mapper": {
+        "model": "gpt-4o",
+        "temperature": "0.7",
+        "max_tokens": "1200",
+        "response_format": "json_object",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You repurpose one long-form article into channel-native short content. Respond ONLY with minified JSON. Schema: {\"linkedin\":\"<=1300 chars, hook-first, 1 idea, no hashtags spam>\",\"twitter_thread\":[\"tweet 1 hook\",\"...\",\"final CTA\"],\"newsletter_blurb\":\"<=80 words\",\"meta_description\":\"<=155 chars\"}. Keep the author's voice. Never invent facts not in the source."
+          },
+          {
+            "role": "user",
+            "content": "Title: {{1.title}}\nURL: {{1.url}}\n\nArticle:\n{{1.content}}"
+          }
+        ]
+      },
+      "metadata": {
+        "designer": { "x": 300, "y": 0 },
+        "restore": { "parameters": { "model": { "label": "gpt-4o" } } }
+      },
+      "onerror": [
+        {
+          "id": 21,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "count": "3", "interval": "3", "retry": true },
+          "metadata": { "designer": { "x": 300, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "module": "json:ParseJSON",
+      "version": 1,
+      "parameters": {},
+      "mapper": { "json": "{{2.result}}" },
+      "metadata": {
+        "designer": { "x": 600, "y": 0 },
+        "restore": { "parameters": { "json": { "label": "Parse drafts" } } }
+      },
+      "onerror": [
+        {
+          "id": 31,
+          "module": "datastore:AddReplaceRecord",
+          "version": 1,
+          "parameters": { "datastore": "1" },
+          "mapper": {
+            "key": "repurpose-fail-{{now}}",
+            "overwrite": false,
+            "record": {
+              "timestamp": "{{now}}",
+              "scenario": "ai-content-repurposer",
+              "status": "error",
+              "record_id": "{{1.url}}",
+              "message": "Model returned non-JSON; no drafts produced"
+            }
+          },
+          "metadata": { "designer": { "x": 600, "y": 300 } },
+          "onerror": [
+            {
+              "id": 32,
+              "module": "builtin:Resume",
+              "version": 1,
+              "parameters": {},
+              "mapper": { "value": "logged" },
+              "metadata": { "designer": { "x": 600, "y": 600 } }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "module": "slack:CreateMessage",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "channel": "{{connection.reviewChannelId}}",
+        "text": ":memo: *Drafts ready for review* — _{{1.title}}_\n{{1.url}}\n\n*LinkedIn*\n{{3.linkedin}}\n\n*Newsletter*\n{{3.newsletter_blurb}}\n\n*Thread* ({{length(3.twitter_thread)}} tweets)\n{{join(3.twitter_thread; \"\n— \")}}\n\n_Edit & schedule, or react :x: to discard._"
+      },
+      "metadata": {
+        "designer": { "x": 900, "y": 0 },
+        "restore": { "parameters": { "channel": { "label": "#content-review" } } }
+      },
+      "onerror": [
+        {
+          "id": 41,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "count": "2", "interval": "3", "retry": true },
+          "metadata": { "designer": { "x": 900, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "module": "datastore:AddReplaceRecord",
+      "version": 1,
+      "parameters": { "datastore": "1" },
+      "mapper": {
+        "key": "repurpose-{{1.url}}",
+        "overwrite": true,
+        "record": {
+          "timestamp": "{{now}}",
+          "scenario": "ai-content-repurposer",
+          "status": "success",
+          "record_id": "{{1.url}}",
+          "message": "Generated LinkedIn + {{length(3.twitter_thread)}}-tweet thread + newsletter blurb"
+        }
+      },
+      "metadata": { "designer": { "x": 1200, "y": 0 } }
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "slots": null,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] },
+    "zone": "us1.make.com",
+    "notes": []
+  }
+}

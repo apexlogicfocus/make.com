@@ -1,0 +1,28 @@
+# Secrets & credentials — NEVER commit real connection data
+.env
+.env.local
+*.secret
+secrets/
+credentials/
+
+# Blueprint exports may contain connection IDs / account hints.
+# Keep raw account exports out; only sanitized blueprints live in this repo.
+*.raw.json
+exports-raw/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+.idea/
+.vscode/
+*.swp
+
+# Node (tooling / validators only)
+node_modules/
+npm-debug.log*
+
+# Build / temp
+dist/
+tmp/
+*.log

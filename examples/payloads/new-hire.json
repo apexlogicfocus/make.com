@@ -1,0 +1,13 @@
+{
+  "firstName": "Priya",
+  "lastName": "Nair",
+  "workEmail": "priya.nair@yourco.com",
+  "personalEmail": "priya.personal@gmail.com",
+  "role": "Product Designer",
+  "department": "design",
+  "startDate": "2026-07-14",
+  "managerName": "Hamna",
+  "managerEmail": "hamna.connect@gmail.com",
+  "docsUrl": "https://yourco.com/onboarding/docs",
+  "handbookUrl": "https://yourco.com/handbook"
+}

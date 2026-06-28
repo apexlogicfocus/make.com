@@ -1,0 +1,17 @@
+{
+  "event": {
+    "type": "Discovery Call",
+    "startTime": "2026-07-02T15:00:00Z",
+    "endTime": "2026-07-02T15:30:00Z"
+  },
+  "invitee": {
+    "firstName": "Sam",
+    "lastName": "Okafor",
+    "email": "sam@brightlabs.com",
+    "company": "Bright Labs"
+  },
+  "host": {
+    "name": "Hamna",
+    "email": "hamna.connect@gmail.com"
+  }
+}

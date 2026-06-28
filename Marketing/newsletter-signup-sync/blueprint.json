@@ -1,0 +1,125 @@
+{
+  "name": "Newsletter Signup Sync",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": { "hook": 0, "maxResults": 1 },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": { "parameters": { "hook": { "label": "Newsletter Signup Webhook" } } }
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+      "filter": {
+        "name": "Consent given",
+        "conditions": [
+          [ { "a": "{{1.consent}}", "o": "equal", "b": "true" } ]
+        ]
+      },
+      "mapper": {
+        "url": "https://YOUR_ESP_API/3.0/lists/{{connection.listId}}/members",
+        "method": "post",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{connection.espKey}}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": true,
+        "contentType": "application/json",
+        "data": "{\n  \"email_address\": \"{{1.email}}\",\n  \"status\": \"pending\",\n  \"merge_fields\": { \"FNAME\": \"{{1.firstName}}\" },\n  \"tags\": [\"newsletter\", \"{{1.source}}\"]\n}"
+      },
+      "metadata": {
+        "designer": { "x": 300, "y": 0 },
+        "restore": { "parameters": { "url": { "label": "Add subscriber to ESP (double opt-in)" } } }
+      },
+      "onerror": [
+        {
+          "id": 21,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "count": "3", "interval": "5", "retry": true },
+          "metadata": { "designer": { "x": 300, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+      "mapper": {
+        "url": "https://YOUR_CRM_API/v1/contacts/upsert",
+        "method": "post",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": true,
+        "contentType": "application/json",
+        "data": "{\n  \"matchField\": \"email\",\n  \"email\": \"{{1.email}}\",\n  \"firstName\": \"{{1.firstName}}\",\n  \"tags\": [\"newsletter-subscriber\"],\n  \"newsletterSource\": \"{{1.source}}\"\n}"
+      },
+      "metadata": {
+        "designer": { "x": 600, "y": 0 },
+        "restore": { "parameters": { "url": { "label": "Tag contact in CRM" } } }
+      },
+      "onerror": [
+        {
+          "id": 31,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "count": "3", "interval": "5", "retry": true },
+          "metadata": { "designer": { "x": 600, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "module": "datastore:AddReplaceRecord",
+      "version": 1,
+      "parameters": { "datastore": "1" },
+      "mapper": {
+        "key": "news-{{1.email}}",
+        "overwrite": true,
+        "record": {
+          "timestamp": "{{now}}",
+          "scenario": "newsletter-signup-sync",
+          "status": "success",
+          "record_id": "{{1.email}}",
+          "message": "Synced to ESP (pending opt-in) + tagged in CRM"
+        }
+      },
+      "metadata": { "designer": { "x": 900, "y": 0 } }
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "slots": null,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] },
+    "zone": "us1.make.com",
+    "notes": []
+  }
+}

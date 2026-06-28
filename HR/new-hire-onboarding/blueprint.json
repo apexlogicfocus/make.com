@@ -1,0 +1,144 @@
+{
+  "name": "New-Hire Onboarding (fan-out)",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": { "hook": 0, "maxResults": 1 },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": { "parameters": { "hook": { "label": "New Hire Webhook (HRIS/form)" } } }
+      }
+    },
+    {
+      "id": 2,
+      "module": "builtin:BasicRouter",
+      "version": 1,
+      "mapper": null,
+      "metadata": { "designer": { "x": 300, "y": 0 } },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 3,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+              "mapper": {
+                "url": "https://YOUR_IDP_API/v1/users",
+                "method": "post",
+                "headers": [
+                  { "name": "Authorization", "value": "Bearer {{connection.idpKey}}" },
+                  { "name": "Content-Type", "value": "application/json" }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": true,
+                "contentType": "application/json",
+                "data": "{\n  \"email\": \"{{1.workEmail}}\",\n  \"firstName\": \"{{1.firstName}}\",\n  \"lastName\": \"{{1.lastName}}\",\n  \"department\": \"{{1.department}}\",\n  \"groups\": [\"all-staff\", \"{{1.department}}\"]\n}"
+              },
+              "metadata": { "designer": { "x": 600, "y": -200 }, "restore": { "parameters": { "url": { "label": "Provision identity / account" } } } },
+              "onerror": [
+                { "id": 31, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "10", "retry": true }, "metadata": { "designer": { "x": 600, "y": 0 } } }
+              ]
+            },
+            {
+              "id": 4,
+              "module": "datastore:AddReplaceRecord",
+              "version": 1,
+              "parameters": { "datastore": "1" },
+              "mapper": {
+                "key": "onboard-acct-{{1.workEmail}}",
+                "overwrite": true,
+                "record": { "timestamp": "{{now}}", "scenario": "new-hire-onboarding", "status": "success", "record_id": "{{1.workEmail}}", "message": "Account provisioned for {{1.firstName}} {{1.lastName}}" }
+              },
+              "metadata": { "designer": { "x": 900, "y": -200 } }
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 5,
+              "module": "email:ActionSendEmail",
+              "version": 1,
+              "parameters": {},
+              "mapper": {
+                "to": [ "{{1.personalEmail}}" ],
+                "subject": "Welcome to the team, {{1.firstName}}! 🎉",
+                "contentType": "html",
+                "html": "<p>Hi {{1.firstName}},</p><p>We're thrilled you're joining as {{1.role}} on {{formatDate(1.startDate; \"dddd, MMM D\")}}. Before day one, please:</p><ul><li>Complete your paperwork: {{1.docsUrl}}</li><li>Read the first-week guide: {{1.handbookUrl}}</li></ul><p>Your manager {{1.managerName}} will reach out soon. Welcome aboard!</p>"
+              },
+              "metadata": { "designer": { "x": 600, "y": 0 } },
+              "onerror": [
+                { "id": 51, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "10", "retry": true }, "metadata": { "designer": { "x": 600, "y": 200 } } }
+              ]
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 6,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+              "mapper": {
+                "url": "https://YOUR_PM_API/v1/checklists",
+                "method": "post",
+                "headers": [
+                  { "name": "Authorization", "value": "Bearer {{connection.pmKey}}" },
+                  { "name": "Content-Type", "value": "application/json" }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": true,
+                "contentType": "application/json",
+                "data": "{\n  \"template\": \"new-hire\",\n  \"assignee\": \"{{1.managerEmail}}\",\n  \"title\": \"Onboard {{1.firstName}} {{1.lastName}}\",\n  \"dueDate\": \"{{1.startDate}}\"\n}"
+              },
+              "metadata": { "designer": { "x": 600, "y": 250 }, "restore": { "parameters": { "url": { "label": "Create onboarding checklist" } } } },
+              "onerror": [
+                { "id": 61, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 600, "y": 450 } } }
+              ]
+            },
+            {
+              "id": 7,
+              "module": "slack:CreateMessage",
+              "version": 1,
+              "parameters": {},
+              "mapper": {
+                "channel": "{{connection.teamChannelId}}",
+                "text": ":wave: Please welcome *{{1.firstName}} {{1.lastName}}*, joining as {{1.role}} in {{1.department}} on {{formatDate(1.startDate; \"MMM D\")}}! Manager: {{1.managerName}}."
+              },
+              "metadata": { "designer": { "x": 900, "y": 250 }, "restore": { "parameters": { "channel": { "label": "#team" } } } },
+              "onerror": [
+                { "id": 71, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "announce-skipped" }, "metadata": { "designer": { "x": 900, "y": 450 } } }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "slots": null,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] },
+    "zone": "us1.make.com",
+    "notes": []
+  }
+}

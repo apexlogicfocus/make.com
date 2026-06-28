@@ -1,0 +1,98 @@
+{
+  "name": "Daily Ops Digest",
+  "flow": [
+    {
+      "id": 1,
+      "module": "datastore:CountRecords",
+      "version": 1,
+      "parameters": { "datastore": "1" },
+      "mapper": {
+        "filter": [
+          [
+            { "a": "status", "o": "text:equal", "b": "success" },
+            { "a": "timestamp", "o": "date:greaterorequal", "b": "{{addDays(now; -1)}}" }
+          ]
+        ]
+      },
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": { "parameters": { "datastore": { "label": "Automation Log" } } }
+      },
+      "onerror": [
+        { "id": 11, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "2", "interval": "3", "retry": true }, "metadata": { "designer": { "x": 0, "y": 300 } } }
+      ]
+    },
+    {
+      "id": 2,
+      "module": "datastore:CountRecords",
+      "version": 1,
+      "parameters": { "datastore": "1" },
+      "mapper": {
+        "filter": [
+          [
+            { "a": "status", "o": "text:equal", "b": "error" },
+            { "a": "timestamp", "o": "date:greaterorequal", "b": "{{addDays(now; -1)}}" }
+          ]
+        ]
+      },
+      "metadata": { "designer": { "x": 300, "y": 0 } },
+      "onerror": [
+        { "id": 21, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "2", "interval": "3", "retry": true }, "metadata": { "designer": { "x": 300, "y": 300 } } }
+      ]
+    },
+    {
+      "id": 3,
+      "module": "datastore:CountRecords",
+      "version": 1,
+      "parameters": { "datastore": "1" },
+      "mapper": {
+        "filter": [
+          [
+            { "a": "status", "o": "text:equal", "b": "escalated" },
+            { "a": "timestamp", "o": "date:greaterorequal", "b": "{{addDays(now; -1)}}" }
+          ]
+        ]
+      },
+      "metadata": { "designer": { "x": 600, "y": 0 } },
+      "onerror": [
+        { "id": 31, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "0" }, "metadata": { "designer": { "x": 600, "y": 300 } } }
+      ]
+    },
+    {
+      "id": 4,
+      "module": "slack:CreateMessage",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "channel": "{{connection.opsChannelId}}",
+        "text": ":bar_chart: *Daily Ops Digest* — {{formatDate(now; \"ddd, MMM D\")}}\n:white_check_mark: Successful runs (24h): *{{1.count}}*\n:x: Errors (24h): *{{2.count}}*\n:warning: Escalations (24h): *{{3.count}}*\n{{if(2.count > 0; \":point_right: Check the Automation Log for error rows.\"; \"All systems healthy. :tada:\")}}"
+      },
+      "metadata": {
+        "designer": { "x": 900, "y": 0 },
+        "restore": { "parameters": { "channel": { "label": "#ops" } } }
+      },
+      "onerror": [
+        { "id": 41, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 900, "y": 300 } } }
+      ]
+    }
+  ],
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "slots": null,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] },
+    "zone": "us1.make.com",
+    "notes": []
+  }
+}

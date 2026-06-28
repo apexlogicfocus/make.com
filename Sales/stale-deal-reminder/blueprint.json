@@ -1,0 +1,143 @@
+{
+  "name": "Stale Deal Reminder",
+  "flow": [
+    {
+      "id": 1,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+      "mapper": {
+        "url": "https://YOUR_CRM_API/v1/deals/search",
+        "method": "post",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": true,
+        "contentType": "application/json",
+        "data": "{\n  \"filter\": {\n    \"status\": \"open\",\n    \"lastActivityBefore\": \"{{addDays(now; -7)}}\"\n  },\n  \"limit\": 100\n}"
+      },
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": { "parameters": { "url": { "label": "Find deals idle > 7 days" } } }
+      },
+      "onerror": [
+        {
+          "id": 11,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "count": "3", "interval": "5", "retry": true },
+          "metadata": { "designer": { "x": 0, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "module": "builtin:BasicFeeder",
+      "version": 1,
+      "parameters": {},
+      "mapper": { "array": "{{1.data.results}}" },
+      "metadata": {
+        "designer": { "x": 300, "y": 0 },
+        "restore": { "parameters": { "array": { "label": "Iterate stale deals" } } }
+      }
+    },
+    {
+      "id": 3,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+      "mapper": {
+        "url": "https://YOUR_CRM_API/v1/tasks",
+        "method": "post",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": true,
+        "contentType": "application/json",
+        "data": "{\n  \"title\": \"Follow up: {{2.name}} has gone quiet\",\n  \"dealId\": \"{{2.id}}\",\n  \"assigneeEmail\": \"{{2.ownerEmail}}\",\n  \"dueDate\": \"{{addDays(now; 1)}}\",\n  \"note\": \"No activity since {{formatDate(2.lastActivity; \\\"YYYY-MM-DD\\\")}}\"\n}"
+      },
+      "metadata": {
+        "designer": { "x": 600, "y": 0 },
+        "restore": { "parameters": { "url": { "label": "Create follow-up task" } } }
+      },
+      "onerror": [
+        {
+          "id": 31,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "count": "3", "interval": "5", "retry": true },
+          "metadata": { "designer": { "x": 600, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "module": "slack:CreateMessage",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "channel": "{{2.ownerSlackId}}",
+        "text": ":hourglass_flowing_sand: *Stale deal* — _{{2.name}}_\nNo activity in {{floor(dateDifference(now; 2.lastActivity; \"days\"))}} days. A follow-up task is on your list for tomorrow."
+      },
+      "metadata": {
+        "designer": { "x": 900, "y": 0 },
+        "restore": { "parameters": { "channel": { "label": "DM deal owner" } } }
+      },
+      "onerror": [
+        {
+          "id": 41,
+          "module": "builtin:Resume",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "value": "notify-skipped" },
+          "metadata": { "designer": { "x": 900, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "module": "datastore:AddReplaceRecord",
+      "version": 1,
+      "parameters": { "datastore": "1" },
+      "mapper": {
+        "key": "stale-{{2.id}}-{{formatDate(now; \"YYYYMMDD\")}}",
+        "overwrite": true,
+        "record": {
+          "timestamp": "{{now}}",
+          "scenario": "stale-deal-reminder",
+          "status": "success",
+          "record_id": "{{2.id}}",
+          "message": "Reminded {{2.ownerEmail}} about {{2.name}}"
+        }
+      },
+      "metadata": { "designer": { "x": 1200, "y": 0 } }
+    }
+  ],
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "slots": null,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] },
+    "zone": "us1.make.com",
+    "notes": []
+  }
+}

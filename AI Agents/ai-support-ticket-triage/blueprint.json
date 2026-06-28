@@ -1,0 +1,193 @@
+{
+  "name": "AI Support Ticket Triage",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": { "hook": 0, "maxResults": 1 },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": { "parameters": { "hook": { "label": "New Support Ticket Webhook" } } }
+      }
+    },
+    {
+      "id": 2,
+      "module": "openai-gpt-3:CreateCompletion",
+      "version": 1,
+      "parameters": { "select": "chat" },
+      "mapper": {
+        "model": "gpt-4o-mini",
+        "temperature": "0",
+        "max_tokens": "400",
+        "response_format": "json_object",
+        "messages": [
+          {
+            "role": "system",
+            "content": "You are a support triage assistant. Classify the ticket and respond ONLY with minified JSON, no prose. Schema: {\"category\":\"billing|technical|account|feature_request|other\",\"priority\":\"urgent|high|normal|low\",\"sentiment\":\"angry|frustrated|neutral|happy\",\"suggested_team\":\"string\",\"summary\":\"one sentence\"}. Mark priority urgent only for outages, security, or churn-risk language."
+          },
+          {
+            "role": "user",
+            "content": "Subject: {{1.subject}}\nPlan: {{1.plan}}\nBody:\n{{1.body}}"
+          }
+        ]
+      },
+      "metadata": {
+        "designer": { "x": 300, "y": 0 },
+        "restore": { "parameters": { "model": { "label": "gpt-4o-mini" } } }
+      },
+      "onerror": [
+        {
+          "id": 21,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "count": "3", "interval": "3", "retry": true },
+          "metadata": { "designer": { "x": 300, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "module": "json:ParseJSON",
+      "version": 1,
+      "parameters": {},
+      "mapper": { "json": "{{2.result}}" },
+      "metadata": {
+        "designer": { "x": 600, "y": 0 },
+        "restore": { "parameters": { "json": { "label": "Parse model output" } } }
+      },
+      "onerror": [
+        {
+          "id": 31,
+          "module": "datastore:AddReplaceRecord",
+          "version": 1,
+          "parameters": { "datastore": "1" },
+          "mapper": {
+            "key": "triage-parsefail-{{1.ticketId}}-{{now}}",
+            "overwrite": false,
+            "record": {
+              "timestamp": "{{now}}",
+              "scenario": "ai-support-ticket-triage",
+              "status": "error",
+              "record_id": "{{1.ticketId}}",
+              "message": "Model returned non-JSON; left for human triage"
+            }
+          },
+          "metadata": { "designer": { "x": 600, "y": 300 } },
+          "onerror": [
+            {
+              "id": 32,
+              "module": "builtin:Resume",
+              "version": 1,
+              "parameters": {},
+              "mapper": { "value": "logged" },
+              "metadata": { "designer": { "x": 600, "y": 600 } }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+      "mapper": {
+        "url": "https://YOUR_HELPDESK_API/v1/tickets/{{1.ticketId}}",
+        "method": "patch",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": true,
+        "contentType": "application/json",
+        "data": "{\n  \"priority\": \"{{3.priority}}\",\n  \"tags\": [\"{{3.category}}\", \"sentiment:{{3.sentiment}}\"],\n  \"assigned_team\": \"{{3.suggested_team}}\",\n  \"internal_note\": \"AI summary: {{3.summary}}\"\n}"
+      },
+      "metadata": {
+        "designer": { "x": 900, "y": 0 },
+        "restore": { "parameters": { "url": { "label": "Update ticket with triage" } } }
+      },
+      "onerror": [
+        {
+          "id": 41,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "count": "3", "interval": "5", "retry": true },
+          "metadata": { "designer": { "x": 900, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "module": "slack:CreateMessage",
+      "version": 1,
+      "parameters": {},
+      "filter": {
+        "name": "Urgent only",
+        "conditions": [
+          [ { "a": "{{3.priority}}", "o": "equal", "b": "urgent" } ]
+        ]
+      },
+      "mapper": {
+        "channel": "{{connection.oncallChannelId}}",
+        "text": ":rotating_light: *URGENT ticket* #{{1.ticketId}}\n*{{1.subject}}*\nCategory: {{3.category}} · Sentiment: {{3.sentiment}}\n{{3.summary}}\nRouted to: {{3.suggested_team}}"
+      },
+      "metadata": {
+        "designer": { "x": 1200, "y": 0 },
+        "restore": { "parameters": { "channel": { "label": "#support-oncall" } } }
+      },
+      "onerror": [
+        {
+          "id": 51,
+          "module": "builtin:Resume",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "value": "notify-skipped" },
+          "metadata": { "designer": { "x": 1200, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "module": "datastore:AddReplaceRecord",
+      "version": 1,
+      "parameters": { "datastore": "1" },
+      "mapper": {
+        "key": "triage-{{1.ticketId}}",
+        "overwrite": true,
+        "record": {
+          "timestamp": "{{now}}",
+          "scenario": "ai-support-ticket-triage",
+          "status": "success",
+          "record_id": "{{1.ticketId}}",
+          "message": "{{3.priority}} / {{3.category}} → {{3.suggested_team}}"
+        }
+      },
+      "metadata": { "designer": { "x": 1500, "y": 0 } }
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "slots": null,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] },
+    "zone": "us1.make.com",
+    "notes": []
+  }
+}

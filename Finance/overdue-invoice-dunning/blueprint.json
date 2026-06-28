@@ -1,0 +1,234 @@
+{
+  "name": "Overdue Invoice Dunning (staged)",
+  "flow": [
+    {
+      "id": 1,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+      "mapper": {
+        "url": "https://YOUR_BILLING_API/v1/invoices/search",
+        "method": "post",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": true,
+        "contentType": "application/json",
+        "data": "{\n  \"filter\": { \"status\": \"open\", \"dueBefore\": \"{{now}}\" },\n  \"limit\": 200\n}"
+      },
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": { "parameters": { "url": { "label": "Find open overdue invoices" } } }
+      },
+      "onerror": [
+        {
+          "id": 11,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "count": "3", "interval": "5", "retry": true },
+          "metadata": { "designer": { "x": 0, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "module": "builtin:BasicFeeder",
+      "version": 1,
+      "parameters": {},
+      "mapper": { "array": "{{1.data.results}}" },
+      "metadata": {
+        "designer": { "x": 300, "y": 0 },
+        "restore": { "parameters": { "array": { "label": "Iterate invoices" } } }
+      }
+    },
+    {
+      "id": 3,
+      "module": "builtin:BasicRouter",
+      "version": 1,
+      "mapper": null,
+      "metadata": { "designer": { "x": 600, "y": 0 } },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 4,
+              "module": "email:ActionSendEmail",
+              "version": 1,
+              "parameters": {},
+              "filter": {
+                "name": "7–13 days overdue",
+                "conditions": [
+                  [
+                    { "a": "{{floor(dateDifference(now; 2.dueDate; \"days\"))}}", "o": "greater:equal", "b": "7" },
+                    { "a": "{{floor(dateDifference(now; 2.dueDate; \"days\"))}}", "o": "less", "b": "14" }
+                  ]
+                ]
+              },
+              "mapper": {
+                "to": [ "{{2.customer.email}}" ],
+                "subject": "Friendly reminder: invoice {{2.number}}",
+                "contentType": "html",
+                "html": "<p>Hi {{2.customer.firstName}},</p><p>Just a gentle nudge that invoice <strong>{{2.number}}</strong> for {{formatNumber(2.amount; 2)}} {{2.currency}} was due on {{formatDate(2.dueDate; \"MMM D\")}}. You can pay here: {{2.payUrl}}.</p><p>Thanks!</p>"
+              },
+              "metadata": { "designer": { "x": 900, "y": -150 } },
+              "onerror": [
+                {
+                  "id": 41,
+                  "module": "builtin:Break",
+                  "version": 1,
+                  "parameters": {},
+                  "mapper": { "count": "3", "interval": "10", "retry": true },
+                  "metadata": { "designer": { "x": 900, "y": 100 } }
+                }
+              ]
+            },
+            {
+              "id": 5,
+              "module": "datastore:AddReplaceRecord",
+              "version": 1,
+              "parameters": { "datastore": "1" },
+              "mapper": {
+                "key": "dun-{{2.id}}-{{formatDate(now; \"YYYYMMDD\")}}",
+                "overwrite": true,
+                "record": {
+                  "timestamp": "{{now}}",
+                  "scenario": "overdue-invoice-dunning",
+                  "status": "success",
+                  "record_id": "{{2.number}}",
+                  "message": "Stage 1 (gentle) reminder sent to {{2.customer.email}}"
+                }
+              },
+              "metadata": { "designer": { "x": 1200, "y": -150 } }
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 6,
+              "module": "email:ActionSendEmail",
+              "version": 1,
+              "parameters": {},
+              "filter": {
+                "name": "14–29 days overdue",
+                "conditions": [
+                  [
+                    { "a": "{{floor(dateDifference(now; 2.dueDate; \"days\"))}}", "o": "greater:equal", "b": "14" },
+                    { "a": "{{floor(dateDifference(now; 2.dueDate; \"days\"))}}", "o": "less", "b": "30" }
+                  ]
+                ]
+              },
+              "mapper": {
+                "to": [ "{{2.customer.email}}" ],
+                "subject": "Action needed: invoice {{2.number}} is now {{floor(dateDifference(now; 2.dueDate; \"days\"))}} days overdue",
+                "contentType": "html",
+                "html": "<p>Hi {{2.customer.firstName}},</p><p>Invoice <strong>{{2.number}}</strong> ({{formatNumber(2.amount; 2)}} {{2.currency}}) remains unpaid and is now {{floor(dateDifference(now; 2.dueDate; \"days\"))}} days past due. Please settle it within 5 business days to avoid a late fee: {{2.payUrl}}.</p>"
+              },
+              "metadata": { "designer": { "x": 900, "y": 0 } },
+              "onerror": [
+                {
+                  "id": 61,
+                  "module": "builtin:Break",
+                  "version": 1,
+                  "parameters": {},
+                  "mapper": { "count": "3", "interval": "10", "retry": true },
+                  "metadata": { "designer": { "x": 900, "y": 250 } }
+                }
+              ]
+            },
+            {
+              "id": 7,
+              "module": "datastore:AddReplaceRecord",
+              "version": 1,
+              "parameters": { "datastore": "1" },
+              "mapper": {
+                "key": "dun-{{2.id}}-{{formatDate(now; \"YYYYMMDD\")}}",
+                "overwrite": true,
+                "record": {
+                  "timestamp": "{{now}}",
+                  "scenario": "overdue-invoice-dunning",
+                  "status": "success",
+                  "record_id": "{{2.number}}",
+                  "message": "Stage 2 (firm) reminder sent to {{2.customer.email}}"
+                }
+              },
+              "metadata": { "designer": { "x": 1200, "y": 0 } }
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 8,
+              "module": "slack:CreateMessage",
+              "version": 1,
+              "parameters": {},
+              "filter": {
+                "name": "30+ days overdue",
+                "conditions": [
+                  [ { "a": "{{floor(dateDifference(now; 2.dueDate; \"days\"))}}", "o": "greater:equal", "b": "30" } ]
+                ]
+              },
+              "mapper": {
+                "channel": "{{connection.financeChannelId}}",
+                "text": ":warning: *Invoice escalation* — {{2.number}} is {{floor(dateDifference(now; 2.dueDate; \"days\"))}} days overdue\nCustomer: {{2.customer.name}} ({{2.customer.email}})\nAmount: {{formatNumber(2.amount; 2)}} {{2.currency}}\n*Automated reminders exhausted — a human should call.*"
+              },
+              "metadata": { "designer": { "x": 900, "y": 200 } },
+              "onerror": [
+                {
+                  "id": 81,
+                  "module": "builtin:Break",
+                  "version": 1,
+                  "parameters": {},
+                  "mapper": { "count": "3", "interval": "5", "retry": true },
+                  "metadata": { "designer": { "x": 900, "y": 450 } }
+                }
+              ]
+            },
+            {
+              "id": 9,
+              "module": "datastore:AddReplaceRecord",
+              "version": 1,
+              "parameters": { "datastore": "1" },
+              "mapper": {
+                "key": "dun-{{2.id}}-{{formatDate(now; \"YYYYMMDD\")}}",
+                "overwrite": true,
+                "record": {
+                  "timestamp": "{{now}}",
+                  "scenario": "overdue-invoice-dunning",
+                  "status": "escalated",
+                  "record_id": "{{2.number}}",
+                  "message": "Escalated to finance team (30+ days)"
+                }
+              },
+              "metadata": { "designer": { "x": 1200, "y": 200 } }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "instant": false,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "slots": null,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] },
+    "zone": "us1.make.com",
+    "notes": []
+  }
+}

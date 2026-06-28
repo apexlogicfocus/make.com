@@ -1,0 +1,143 @@
+{
+  "name": "Meeting Booked → Deal",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": { "hook": 0, "maxResults": 1 },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": { "parameters": { "hook": { "label": "Booking Webhook (Calendly/Cal.com)" } } }
+      }
+    },
+    {
+      "id": 2,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+      "mapper": {
+        "url": "https://YOUR_CRM_API/v1/contacts/upsert",
+        "method": "post",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": true,
+        "contentType": "application/json",
+        "data": "{\n  \"matchField\": \"email\",\n  \"email\": \"{{1.invitee.email}}\",\n  \"firstName\": \"{{1.invitee.firstName}}\",\n  \"lastName\": \"{{1.invitee.lastName}}\"\n}"
+      },
+      "metadata": {
+        "designer": { "x": 300, "y": 0 },
+        "restore": { "parameters": { "url": { "label": "Upsert contact" } } }
+      },
+      "onerror": [
+        {
+          "id": 21,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "count": "3", "interval": "5", "retry": true },
+          "metadata": { "designer": { "x": 300, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+      "mapper": {
+        "url": "https://YOUR_CRM_API/v1/deals",
+        "method": "post",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Content-Type", "value": "application/json" }
+        ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": true,
+        "contentType": "application/json",
+        "data": "{\n  \"name\": \"{{1.invitee.company}} — Discovery\",\n  \"contactId\": \"{{2.data.id}}\",\n  \"pipeline\": \"sales\",\n  \"stage\": \"meeting-booked\",\n  \"ownerEmail\": \"{{1.host.email}}\",\n  \"meetingAt\": \"{{1.event.startTime}}\",\n  \"source\": \"inbound-booking\"\n}"
+      },
+      "metadata": {
+        "designer": { "x": 600, "y": 0 },
+        "restore": { "parameters": { "url": { "label": "Create deal" } } }
+      },
+      "onerror": [
+        {
+          "id": 31,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "count": "3", "interval": "5", "retry": true },
+          "metadata": { "designer": { "x": 600, "y": 300 } }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "module": "datastore:AddReplaceRecord",
+      "version": 1,
+      "parameters": { "datastore": "1" },
+      "mapper": {
+        "key": "deal-{{3.data.id}}",
+        "overwrite": false,
+        "record": {
+          "timestamp": "{{now}}",
+          "scenario": "meeting-booked-to-deal",
+          "status": "success",
+          "record_id": "{{1.invitee.email}}",
+          "message": "Deal {{3.data.id}} created for {{1.invitee.company}}"
+        }
+      },
+      "metadata": { "designer": { "x": 900, "y": 0 } }
+    },
+    {
+      "id": 5,
+      "module": "slack:CreateMessage",
+      "version": 1,
+      "parameters": {},
+      "mapper": {
+        "channel": "{{connection.channelId}}",
+        "text": ":calendar: *Meeting booked → deal created*\n{{1.invitee.firstName}} {{1.invitee.lastName}} ({{1.invitee.company}})\nOwner: {{1.host.email}}\nWhen: {{formatDate(1.event.startTime; \"YYYY-MM-DD HH:mm\")}}\nDeal: {{3.data.id}}"
+      },
+      "metadata": {
+        "designer": { "x": 1200, "y": 0 },
+        "restore": { "parameters": { "channel": { "label": "#sales" } } }
+      },
+      "onerror": [
+        {
+          "id": 51,
+          "module": "builtin:Resume",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "value": "notify-skipped" },
+          "metadata": { "designer": { "x": 1200, "y": 300 } }
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "slots": null,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] },
+    "zone": "us1.make.com",
+    "notes": []
+  }
+}

@@ -1,0 +1,208 @@
+{
+  "name": "Lead Capture → CRM (dedup + upsert)",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": {
+        "hook": 0,
+        "maxResults": 1
+      },
+      "mapper": {},
+      "metadata": {
+        "designer": { "x": 0, "y": 0 },
+        "restore": {
+          "parameters": {
+            "hook": { "label": "Lead Capture Webhook" }
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "module": "builtin:BasicRouter",
+      "version": 1,
+      "mapper": null,
+      "metadata": {
+        "designer": { "x": 300, "y": 0 }
+      },
+      "routes": [
+        {
+          "flow": [
+            {
+              "id": 3,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+              "filter": {
+                "name": "Has valid email",
+                "conditions": [
+                  [
+                    { "a": "{{1.email}}", "o": "exist" },
+                    { "a": "{{1.email}}", "o": "text:pattern", "b": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$" }
+                  ]
+                ]
+              },
+              "mapper": {
+                "url": "https://YOUR_CRM_API/v1/contacts/search",
+                "method": "post",
+                "headers": [
+                  { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+                  { "name": "Content-Type", "value": "application/json" }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": true,
+                "contentType": "application/json",
+                "data": "{\n  \"filter\": { \"email\": \"{{1.email}}\" },\n  \"limit\": 1\n}"
+              },
+              "metadata": {
+                "designer": { "x": 600, "y": 0 },
+                "restore": { "parameters": { "url": { "label": "Search contact by email" } } }
+              },
+              "onerror": [
+                {
+                  "id": 31,
+                  "module": "builtin:Break",
+                  "version": 1,
+                  "parameters": {},
+                  "mapper": { "count": "3", "interval": "5", "retry": true },
+                  "metadata": { "designer": { "x": 600, "y": 300 } }
+                }
+              ]
+            },
+            {
+              "id": 4,
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+              "mapper": {
+                "url": "https://YOUR_CRM_API/v1/contacts/upsert",
+                "method": "post",
+                "headers": [
+                  { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+                  { "name": "Content-Type", "value": "application/json" }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": true,
+                "contentType": "application/json",
+                "data": "{\n  \"matchField\": \"email\",\n  \"email\": \"{{1.email}}\",\n  \"firstName\": \"{{1.firstName}}\",\n  \"lastName\": \"{{1.lastName}}\",\n  \"company\": \"{{1.company}}\",\n  \"source\": \"{{1.source}}\",\n  \"existingId\": \"{{3.data.results[].id}}\"\n}"
+              },
+              "metadata": {
+                "designer": { "x": 900, "y": 0 },
+                "restore": { "parameters": { "url": { "label": "Upsert contact (create or update)" } } }
+              },
+              "onerror": [
+                {
+                  "id": 41,
+                  "module": "builtin:Break",
+                  "version": 1,
+                  "parameters": {},
+                  "mapper": { "count": "3", "interval": "5", "retry": true },
+                  "metadata": { "designer": { "x": 900, "y": 300 } }
+                }
+              ]
+            },
+            {
+              "id": 5,
+              "module": "datastore:AddReplaceRecord",
+              "version": 1,
+              "parameters": { "datastore": "1" },
+              "mapper": {
+                "key": "{{1.email}}-{{now}}",
+                "overwrite": false,
+                "record": {
+                  "timestamp": "{{now}}",
+                  "scenario": "lead-capture-to-crm",
+                  "status": "success",
+                  "record_id": "{{1.email}}",
+                  "message": "Contact upserted (id {{4.data.id}})"
+                }
+              },
+              "metadata": {
+                "designer": { "x": 1200, "y": 0 },
+                "restore": { "parameters": { "datastore": { "label": "Automation Log" } } }
+              }
+            },
+            {
+              "id": 6,
+              "module": "slack:CreateMessage",
+              "version": 1,
+              "parameters": {},
+              "mapper": {
+                "channel": "{{connection.channelId}}",
+                "text": ":sparkles: *New lead captured*\nName: {{1.firstName}} {{1.lastName}}\nCompany: {{1.company}}\nEmail: {{1.email}}\nSource: {{1.source}}"
+              },
+              "metadata": {
+                "designer": { "x": 1500, "y": 0 },
+                "restore": { "parameters": { "channel": { "label": "#leads" } } }
+              },
+              "onerror": [
+                {
+                  "id": 61,
+                  "module": "builtin:Resume",
+                  "version": 1,
+                  "parameters": {},
+                  "mapper": { "value": "notify-skipped" },
+                  "metadata": { "designer": { "x": 1500, "y": 300 } }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "flow": [
+            {
+              "id": 7,
+              "module": "datastore:AddReplaceRecord",
+              "version": 1,
+              "parameters": { "datastore": "1" },
+              "filter": {
+                "name": "Invalid / missing email",
+                "conditions": [
+                  [ { "a": "{{1.email}}", "o": "notexist" } ]
+                ]
+              },
+              "mapper": {
+                "key": "invalid-{{now}}",
+                "overwrite": false,
+                "record": {
+                  "timestamp": "{{now}}",
+                  "scenario": "lead-capture-to-crm",
+                  "status": "skipped",
+                  "record_id": "{{1.email}}",
+                  "message": "Rejected: missing or invalid email"
+                }
+              },
+              "metadata": {
+                "designer": { "x": 600, "y": 450 },
+                "restore": { "parameters": { "datastore": { "label": "Automation Log" } } }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "instant": true,
+    "version": 1,
+    "scenario": {
+      "roundtrips": 1,
+      "maxErrors": 3,
+      "autoCommit": true,
+      "autoCommitTriggerLast": true,
+      "sequential": false,
+      "slots": null,
+      "confidential": false,
+      "dataloss": false,
+      "dlq": false,
+      "freshVariables": false
+    },
+    "designer": { "orphans": [] },
+    "zone": "us1.make.com",
+    "notes": []
+  }
+}
