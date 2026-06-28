@@ -1,0 +1,1727 @@
+{
+    "name": "Scrape Private Youtube Playlists",
+    "flow": [
+        {
+            "id": 31,
+            "module": "youtube:universal",
+            "version": 4,
+            "parameters": {
+                "__IMTCONN__": 10066859
+            },
+            "mapper": {
+                "qs": [
+                    {
+                        "key": "part",
+                        "value": "snippet,contentDetails"
+                    },
+                    {
+                        "key": "mine",
+                        "value": "true"
+                    },
+                    {
+                        "key": "maxResults",
+                        "value": "50"
+                    }
+                ],
+                "url": "/v3/playlists",
+                "method": "GET",
+                "headers": [
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json"
+                    }
+                ]
+            },
+            "metadata": {
+                "designer": {
+                    "x": -1884,
+                    "y": -55
+                },
+                "restore": {
+                    "expect": {
+                        "qs": {
+                            "mode": "chose",
+                            "items": [
+                                null,
+                                null,
+                                null
+                            ]
+                        },
+                        "method": {
+                            "mode": "chose",
+                            "label": "GET"
+                        },
+                        "headers": {
+                            "mode": "chose",
+                            "items": [
+                                null
+                            ]
+                        }
+                    },
+                    "parameters": {
+                        "__IMTCONN__": {
+                            "data": {
+                                "scoped": "true",
+                                "connection": "youtube"
+                            },
+                            "label": "My YouTube connection3 (Test <you@example.com>)"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "__IMTCONN__",
+                        "type": "account:youtube",
+                        "label": "Connection",
+                        "required": true
+                    }
+                ],
+                "expect": [
+                    {
+                        "name": "url",
+                        "type": "text",
+                        "label": "URL",
+                        "required": true
+                    },
+                    {
+                        "name": "method",
+                        "type": "select",
+                        "label": "Method",
+                        "required": true,
+                        "validate": {
+                            "enum": [
+                                "GET",
+                                "POST",
+                                "PUT",
+                                "PATCH",
+                                "DELETE"
+                            ]
+                        }
+                    },
+                    {
+                        "name": "headers",
+                        "spec": {
+                            "name": "value",
+                            "spec": [
+                                {
+                                    "name": "key",
+                                    "type": "text",
+                                    "label": "Key"
+                                },
+                                {
+                                    "name": "value",
+                                    "type": "text",
+                                    "label": "Value"
+                                }
+                            ],
+                            "type": "collection",
+                            "label": "Header"
+                        },
+                        "type": "array",
+                        "label": "Headers"
+                    },
+                    {
+                        "name": "qs",
+                        "spec": {
+                            "name": "value",
+                            "spec": [
+                                {
+                                    "name": "key",
+                                    "type": "text",
+                                    "label": "Key"
+                                },
+                                {
+                                    "name": "value",
+                                    "type": "text",
+                                    "label": "Value"
+                                }
+                            ],
+                            "type": "collection",
+                            "label": "Query Parameter"
+                        },
+                        "type": "array",
+                        "label": "Query String"
+                    },
+                    {
+                        "name": "body",
+                        "type": "any",
+                        "label": "Body"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 41,
+            "module": "builtin:BasicRouter",
+            "version": 1,
+            "mapper": null,
+            "metadata": {
+                "designer": {
+                    "x": -1628,
+                    "y": -51
+                }
+            },
+            "routes": [
+                {
+                    "flow": [
+                        {
+                            "id": 67,
+                            "module": "google-sheets:clearValuesFromRange",
+                            "version": 2,
+                            "parameters": {
+                                "__IMTCONN__": 9994148
+                            },
+                            "mapper": {
+                                "from": "drive",
+                                "range": "A2:D3000",
+                                "sheet": "YoutubeVideos",
+                                "select": "list",
+                                "spreadsheetId": "/YOUR_SPREADSHEET_ID"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -1302,
+                                    "y": -47
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "from": {
+                                            "label": "My Drive"
+                                        },
+                                        "sheet": {
+                                            "label": "YoutubeVideos"
+                                        },
+                                        "select": {
+                                            "label": "Search by path"
+                                        },
+                                        "spreadsheetId": {
+                                            "path": [
+                                                "testAutomationTools"
+                                            ]
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "My Google connection (you@example.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "select",
+                                        "type": "select",
+                                        "label": "Search Method",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "list",
+                                                "fromAll",
+                                                "map"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "range",
+                                        "type": "text",
+                                        "label": "Range",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "from",
+                                        "type": "select",
+                                        "label": "Drive",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "drive",
+                                                "share",
+                                                "team"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "spreadsheetId",
+                                        "type": "file",
+                                        "label": "Spreadsheet ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "sheet",
+                                        "type": "select",
+                                        "label": "Sheet Name",
+                                        "required": true
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 75,
+                            "module": "util:SetVariables",
+                            "version": 1,
+                            "parameters": {},
+                            "mapper": {
+                                "scope": "execution",
+                                "variables": [
+                                    {
+                                        "name": "nextPageToken",
+                                        "value": ""
+                                    },
+                                    {
+                                        "name": "prevPageToken",
+                                        "value": ""
+                                    }
+                                ]
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -987,
+                                    "y": -45
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "scope": {
+                                            "label": "One execution"
+                                        },
+                                        "variables": {
+                                            "items": [
+                                                null,
+                                                null
+                                            ]
+                                        }
+                                    }
+                                },
+                                "expect": [
+                                    {
+                                        "name": "variables",
+                                        "spec": [
+                                            {
+                                                "name": "name",
+                                                "type": "text",
+                                                "label": "Variable name",
+                                                "required": true
+                                            },
+                                            {
+                                                "name": "value",
+                                                "type": "any",
+                                                "label": "Variable value"
+                                            }
+                                        ],
+                                        "type": "array",
+                                        "label": "Variables"
+                                    },
+                                    {
+                                        "name": "scope",
+                                        "type": "select",
+                                        "label": "Variable lifetime",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "roundtrip",
+                                                "execution"
+                                            ]
+                                        }
+                                    }
+                                ],
+                                "interface": [
+                                    {
+                                        "name": "nextPageToken",
+                                        "type": "any",
+                                        "label": "nextPageToken"
+                                    },
+                                    {
+                                        "name": "prevPageToken",
+                                        "type": "any",
+                                        "label": "prevPageToken"
+                                    }
+                                ],
+                                "advanced": true
+                            }
+                        },
+                        {
+                            "id": 39,
+                            "module": "builtin:BasicFeeder",
+                            "version": 1,
+                            "parameters": {},
+                            "mapper": {
+                                "array": "{{31.body.items}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -687,
+                                    "y": -45
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "array": {
+                                            "mode": "edit"
+                                        }
+                                    }
+                                },
+                                "expect": [
+                                    {
+                                        "mode": "edit",
+                                        "name": "array",
+                                        "spec": [],
+                                        "type": "array",
+                                        "label": "Array"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 44,
+                            "module": "youtube:universal",
+                            "version": 4,
+                            "parameters": {
+                                "__IMTCONN__": 10066859
+                            },
+                            "mapper": {
+                                "qs": [
+                                    {
+                                        "key": "part",
+                                        "value": "snippet,contentDetails"
+                                    },
+                                    {
+                                        "key": "playlistId",
+                                        "value": "{{39.id}}"
+                                    },
+                                    {
+                                        "key": "maxResults",
+                                        "value": "50"
+                                    }
+                                ],
+                                "url": "/v3/playlistItems",
+                                "method": "GET",
+                                "headers": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ]
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -427,
+                                    "y": -44
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "qs": {
+                                            "mode": "chose",
+                                            "items": [
+                                                null,
+                                                null,
+                                                null
+                                            ]
+                                        },
+                                        "method": {
+                                            "mode": "chose",
+                                            "label": "GET"
+                                        },
+                                        "headers": {
+                                            "mode": "chose",
+                                            "items": [
+                                                null
+                                            ]
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "youtube"
+                                            },
+                                            "label": "My YouTube connection3 (Test <you@example.com>)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:youtube",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "url",
+                                        "type": "text",
+                                        "label": "URL",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "method",
+                                        "type": "select",
+                                        "label": "Method",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "GET",
+                                                "POST",
+                                                "PUT",
+                                                "PATCH",
+                                                "DELETE"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "name": "headers",
+                                        "spec": {
+                                            "name": "value",
+                                            "spec": [
+                                                {
+                                                    "name": "key",
+                                                    "type": "text",
+                                                    "label": "Key"
+                                                },
+                                                {
+                                                    "name": "value",
+                                                    "type": "text",
+                                                    "label": "Value"
+                                                }
+                                            ],
+                                            "type": "collection",
+                                            "label": "Header"
+                                        },
+                                        "type": "array",
+                                        "label": "Headers"
+                                    },
+                                    {
+                                        "name": "qs",
+                                        "spec": {
+                                            "name": "value",
+                                            "spec": [
+                                                {
+                                                    "name": "key",
+                                                    "type": "text",
+                                                    "label": "Key"
+                                                },
+                                                {
+                                                    "name": "value",
+                                                    "type": "text",
+                                                    "label": "Value"
+                                                }
+                                            ],
+                                            "type": "collection",
+                                            "label": "Query Parameter"
+                                        },
+                                        "type": "array",
+                                        "label": "Query String"
+                                    },
+                                    {
+                                        "name": "body",
+                                        "type": "any",
+                                        "label": "Body"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 57,
+                            "module": "builtin:BasicRouter",
+                            "version": 1,
+                            "mapper": null,
+                            "metadata": {
+                                "designer": {
+                                    "x": -117,
+                                    "y": -41
+                                }
+                            },
+                            "routes": [
+                                {
+                                    "flow": [
+                                        {
+                                            "id": 77,
+                                            "module": "builtin:BasicFeeder",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "mapper": {
+                                                "array": "{{44.body.items}}"
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": -130,
+                                                    "y": 366
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "array": {
+                                                            "mode": "edit"
+                                                        }
+                                                    }
+                                                },
+                                                "expect": [
+                                                    {
+                                                        "mode": "edit",
+                                                        "name": "array",
+                                                        "spec": [],
+                                                        "type": "array",
+                                                        "label": "Array"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 104,
+                                            "module": "builtin:BasicAggregator",
+                                            "version": 1,
+                                            "parameters": {
+                                                "feeder": 77,
+                                                "target": "105.rows"
+                                            },
+                                            "mapper": {
+                                                "values": [
+                                                    "{{39.id}}",
+                                                    "{{39.snippet.title}}",
+                                                    "{{77.snippet.title}}",
+                                                    "{{77.snippet.videoOwnerChannelTitle}}",
+                                                    "{{77.contentDetails.videoPublishedAt}}"
+                                                ]
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 178,
+                                                    "y": 362
+                                                },
+                                                "restore": {
+                                                    "extra": {
+                                                        "feeder": {
+                                                            "label": "Iterator [77]"
+                                                        },
+                                                        "target": {
+                                                            "label": "Rows"
+                                                        }
+                                                    },
+                                                    "expect": {
+                                                        "__IMTTARGET__": {
+                                                            "nested": {
+                                                                "values": {
+                                                                    "mode": "chose",
+                                                                    "items": [
+                                                                        null,
+                                                                        null,
+                                                                        null,
+                                                                        null,
+                                                                        null
+                                                                    ]
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "expect": [
+                                                    {
+                                                        "name": "values",
+                                                        "spec": {
+                                                            "name": "value",
+                                                            "type": "text",
+                                                            "label": "Column"
+                                                        },
+                                                        "type": "array",
+                                                        "label": "Values"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 105,
+                                            "module": "google-sheets:addMultipleRows",
+                                            "version": 2,
+                                            "parameters": {
+                                                "__IMTCONN__": 9994148
+                                            },
+                                            "mapper": {
+                                                "rows": "{{104.array}}",
+                                                "sheetId": "YoutubeVideos",
+                                                "spreadsheetId": "YOUR_SPREADSHEET_ID",
+                                                "tableFirstRow": "A1:Z1",
+                                                "insertDataOption": "INSERT_ROWS",
+                                                "valueInputOption": "USER_ENTERED",
+                                                "insertUnformatted": false
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 478,
+                                                    "y": 362
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "rows": {
+                                                            "mode": "edit"
+                                                        },
+                                                        "sheetId": {
+                                                            "mode": "edit"
+                                                        },
+                                                        "tableFirstRow": {
+                                                            "label": "A-Z"
+                                                        },
+                                                        "insertDataOption": {
+                                                            "mode": "chose",
+                                                            "label": "Insert rows"
+                                                        },
+                                                        "valueInputOption": {
+                                                            "mode": "chose",
+                                                            "label": "User entered"
+                                                        },
+                                                        "insertUnformatted": {
+                                                            "mode": "chose"
+                                                        }
+                                                    },
+                                                    "parameters": {
+                                                        "__IMTCONN__": {
+                                                            "data": {
+                                                                "scoped": "true",
+                                                                "connection": "google"
+                                                            },
+                                                            "label": "My Google connection (you@example.com)"
+                                                        }
+                                                    }
+                                                },
+                                                "parameters": [
+                                                    {
+                                                        "name": "__IMTCONN__",
+                                                        "type": "account:google",
+                                                        "label": "Connection",
+                                                        "required": true
+                                                    }
+                                                ],
+                                                "expect": [
+                                                    {
+                                                        "name": "spreadsheetId",
+                                                        "type": "text",
+                                                        "label": "Spreadsheet ID",
+                                                        "required": true
+                                                    },
+                                                    {
+                                                        "name": "insertUnformatted",
+                                                        "type": "boolean",
+                                                        "label": "Unformatted",
+                                                        "required": true
+                                                    },
+                                                    {
+                                                        "name": "valueInputOption",
+                                                        "type": "select",
+                                                        "label": "Value input option"
+                                                    },
+                                                    {
+                                                        "name": "insertDataOption",
+                                                        "type": "select",
+                                                        "label": "Insert data option"
+                                                    },
+                                                    {
+                                                        "type": "hidden"
+                                                    },
+                                                    {
+                                                        "mode": "edit",
+                                                        "name": "sheetId",
+                                                        "type": "select",
+                                                        "label": "Sheet Name",
+                                                        "required": true
+                                                    },
+                                                    {
+                                                        "name": "tableFirstRow",
+                                                        "type": "select",
+                                                        "label": "Column range",
+                                                        "required": true,
+                                                        "validate": {
+                                                            "enum": [
+                                                                "A1:Z1",
+                                                                "A1:BZ1",
+                                                                "A1:CZ1",
+                                                                "A1:DZ1",
+                                                                "A1:MZ1",
+                                                                "A1:ZZ1"
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        "mode": "edit",
+                                                        "name": "rows",
+                                                        "spec": {
+                                                            "name": "value",
+                                                            "spec": [
+                                                                {
+                                                                    "name": "values",
+                                                                    "spec": {
+                                                                        "type": "text",
+                                                                        "label": "Column"
+                                                                    },
+                                                                    "type": "array",
+                                                                    "label": "Values",
+                                                                    "labels": {
+                                                                        "add": "Add value"
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "type": "collection",
+                                                            "label": "Row"
+                                                        },
+                                                        "type": "array",
+                                                        "label": "Rows"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                },
+                                {
+                                    "flow": [
+                                        {
+                                            "id": 76,
+                                            "module": "util:SetVariable2",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "filter": {
+                                                "name": "temp",
+                                                "conditions": [
+                                                    [
+                                                        {
+                                                            "a": "{{get(44.body; \"nextPageToken\")}}",
+                                                            "o": "exist"
+                                                        }
+                                                    ]
+                                                ]
+                                            },
+                                            "mapper": {
+                                                "name": "nextPageToken",
+                                                "scope": "execution",
+                                                "value": "{{get(44.body; \"nextPageToken\")}}"
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 183,
+                                                    "y": -41
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "scope": {
+                                                            "label": "One execution"
+                                                        }
+                                                    }
+                                                },
+                                                "expect": [
+                                                    {
+                                                        "name": "name",
+                                                        "type": "text",
+                                                        "label": "Variable name",
+                                                        "required": true
+                                                    },
+                                                    {
+                                                        "name": "scope",
+                                                        "type": "select",
+                                                        "label": "Variable lifetime",
+                                                        "required": true,
+                                                        "validate": {
+                                                            "enum": [
+                                                                "roundtrip",
+                                                                "execution"
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        "name": "value",
+                                                        "type": "any",
+                                                        "label": "Variable value"
+                                                    }
+                                                ],
+                                                "interface": [
+                                                    {
+                                                        "name": "nextPageToken",
+                                                        "type": "any",
+                                                        "label": "nextPageToken"
+                                                    }
+                                                ],
+                                                "advanced": true
+                                            }
+                                        },
+                                        {
+                                            "id": 49,
+                                            "module": "builtin:BasicRepeater",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "mapper": {
+                                                "step": "1",
+                                                "start": "1",
+                                                "repeats": "10"
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 510,
+                                                    "y": -36
+                                                },
+                                                "restore": {},
+                                                "expect": [
+                                                    {
+                                                        "name": "start",
+                                                        "type": "number",
+                                                        "label": "Initial value",
+                                                        "required": true
+                                                    },
+                                                    {
+                                                        "name": "repeats",
+                                                        "type": "number",
+                                                        "label": "Repeats",
+                                                        "required": true,
+                                                        "validate": {
+                                                            "max": 10000,
+                                                            "min": 0
+                                                        }
+                                                    },
+                                                    {
+                                                        "name": "step",
+                                                        "type": "number",
+                                                        "label": "Step",
+                                                        "required": true
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 72,
+                                            "module": "util:GetVariable2",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "mapper": {
+                                                "name": "nextPageToken"
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 787,
+                                                    "y": -41
+                                                },
+                                                "restore": {},
+                                                "expect": [
+                                                    {
+                                                        "name": "name",
+                                                        "type": "text",
+                                                        "label": "Variable name",
+                                                        "required": true
+                                                    }
+                                                ],
+                                                "interface": [
+                                                    {
+                                                        "name": "nextPageToken",
+                                                        "type": "any",
+                                                        "label": "nextPageToken"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 73,
+                                            "module": "util:GetVariable2",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "mapper": {
+                                                "name": "prevPageToken"
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 1060,
+                                                    "y": -47
+                                                },
+                                                "restore": {},
+                                                "expect": [
+                                                    {
+                                                        "name": "name",
+                                                        "type": "text",
+                                                        "label": "Variable name",
+                                                        "required": true
+                                                    }
+                                                ],
+                                                "interface": [
+                                                    {
+                                                        "name": "prevPageToken",
+                                                        "type": "any",
+                                                        "label": "prevPageToken"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 48,
+                                            "module": "youtube:universal",
+                                            "version": 4,
+                                            "parameters": {
+                                                "__IMTCONN__": 10066859
+                                            },
+                                            "filter": {
+                                                "name": "test",
+                                                "conditions": [
+                                                    [
+                                                        {
+                                                            "a": "{{73.prevPageToken}}",
+                                                            "b": "{{72.nextPageToken}}",
+                                                            "o": "text:notequal"
+                                                        }
+                                                    ]
+                                                ]
+                                            },
+                                            "mapper": {
+                                                "qs": [
+                                                    {
+                                                        "key": "part",
+                                                        "value": "snippet,contentDetails"
+                                                    },
+                                                    {
+                                                        "key": "playlistId",
+                                                        "value": "{{39.id}}"
+                                                    },
+                                                    {
+                                                        "key": "maxResults",
+                                                        "value": "50"
+                                                    },
+                                                    {
+                                                        "key": "nextPageToken",
+                                                        "value": "{{72.nextPageToken}}"
+                                                    }
+                                                ],
+                                                "url": "/v3/playlistItems",
+                                                "method": "GET",
+                                                "headers": [
+                                                    {
+                                                        "key": "Content-Type",
+                                                        "value": "application/json"
+                                                    }
+                                                ]
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 1355,
+                                                    "y": -45
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "qs": {
+                                                            "mode": "chose",
+                                                            "items": [
+                                                                null,
+                                                                null,
+                                                                null,
+                                                                null
+                                                            ]
+                                                        },
+                                                        "method": {
+                                                            "mode": "chose",
+                                                            "label": "GET"
+                                                        },
+                                                        "headers": {
+                                                            "mode": "chose",
+                                                            "items": [
+                                                                null
+                                                            ]
+                                                        }
+                                                    },
+                                                    "parameters": {
+                                                        "__IMTCONN__": {
+                                                            "data": {
+                                                                "scoped": "true",
+                                                                "connection": "youtube"
+                                                            },
+                                                            "label": "My YouTube connection3 (Test <you@example.com>)"
+                                                        }
+                                                    }
+                                                },
+                                                "parameters": [
+                                                    {
+                                                        "name": "__IMTCONN__",
+                                                        "type": "account:youtube",
+                                                        "label": "Connection",
+                                                        "required": true
+                                                    }
+                                                ],
+                                                "expect": [
+                                                    {
+                                                        "name": "url",
+                                                        "type": "text",
+                                                        "label": "URL",
+                                                        "required": true
+                                                    },
+                                                    {
+                                                        "name": "method",
+                                                        "type": "select",
+                                                        "label": "Method",
+                                                        "required": true,
+                                                        "validate": {
+                                                            "enum": [
+                                                                "GET",
+                                                                "POST",
+                                                                "PUT",
+                                                                "PATCH",
+                                                                "DELETE"
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        "name": "headers",
+                                                        "spec": {
+                                                            "name": "value",
+                                                            "spec": [
+                                                                {
+                                                                    "name": "key",
+                                                                    "type": "text",
+                                                                    "label": "Key"
+                                                                },
+                                                                {
+                                                                    "name": "value",
+                                                                    "type": "text",
+                                                                    "label": "Value"
+                                                                }
+                                                            ],
+                                                            "type": "collection",
+                                                            "label": "Header"
+                                                        },
+                                                        "type": "array",
+                                                        "label": "Headers"
+                                                    },
+                                                    {
+                                                        "name": "qs",
+                                                        "spec": {
+                                                            "name": "value",
+                                                            "spec": [
+                                                                {
+                                                                    "name": "key",
+                                                                    "type": "text",
+                                                                    "label": "Key"
+                                                                },
+                                                                {
+                                                                    "name": "value",
+                                                                    "type": "text",
+                                                                    "label": "Value"
+                                                                }
+                                                            ],
+                                                            "type": "collection",
+                                                            "label": "Query Parameter"
+                                                        },
+                                                        "type": "array",
+                                                        "label": "Query String"
+                                                    },
+                                                    {
+                                                        "name": "body",
+                                                        "type": "any",
+                                                        "label": "Body"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 60,
+                                            "module": "util:SetVariable2",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "mapper": {
+                                                "name": "prevPageToken",
+                                                "scope": "execution",
+                                                "value": "{{72.nextPageToken}}"
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 1626,
+                                                    "y": -46
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "scope": {
+                                                            "label": "One execution"
+                                                        }
+                                                    }
+                                                },
+                                                "expect": [
+                                                    {
+                                                        "name": "name",
+                                                        "type": "text",
+                                                        "label": "Variable name",
+                                                        "required": true
+                                                    },
+                                                    {
+                                                        "name": "scope",
+                                                        "type": "select",
+                                                        "label": "Variable lifetime",
+                                                        "required": true,
+                                                        "validate": {
+                                                            "enum": [
+                                                                "roundtrip",
+                                                                "execution"
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        "name": "value",
+                                                        "type": "any",
+                                                        "label": "Variable value"
+                                                    }
+                                                ],
+                                                "interface": [
+                                                    {
+                                                        "name": "prevPageToken",
+                                                        "type": "any",
+                                                        "label": "prevPageToken"
+                                                    }
+                                                ],
+                                                "advanced": true
+                                            }
+                                        },
+                                        {
+                                            "id": 56,
+                                            "module": "util:SetVariable2",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "mapper": {
+                                                "name": "nextPageToken",
+                                                "scope": "execution",
+                                                "value": "{{get(48.body; \"nextPageToken\")}}"
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 1880,
+                                                    "y": -41
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "scope": {
+                                                            "label": "One execution"
+                                                        }
+                                                    }
+                                                },
+                                                "expect": [
+                                                    {
+                                                        "name": "name",
+                                                        "type": "text",
+                                                        "label": "Variable name",
+                                                        "required": true
+                                                    },
+                                                    {
+                                                        "name": "scope",
+                                                        "type": "select",
+                                                        "label": "Variable lifetime",
+                                                        "required": true,
+                                                        "validate": {
+                                                            "enum": [
+                                                                "roundtrip",
+                                                                "execution"
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        "name": "value",
+                                                        "type": "any",
+                                                        "label": "Variable value"
+                                                    }
+                                                ],
+                                                "interface": [
+                                                    {
+                                                        "name": "nextPageToken",
+                                                        "type": "any",
+                                                        "label": "nextPageToken"
+                                                    }
+                                                ],
+                                                "advanced": true
+                                            }
+                                        },
+                                        {
+                                            "id": 78,
+                                            "module": "builtin:BasicFeeder",
+                                            "version": 1,
+                                            "parameters": {},
+                                            "mapper": {
+                                                "array": "{{48.body.items}}"
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 1887,
+                                                    "y": 338
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "array": {
+                                                            "mode": "edit"
+                                                        }
+                                                    }
+                                                },
+                                                "expect": [
+                                                    {
+                                                        "mode": "edit",
+                                                        "name": "array",
+                                                        "spec": [],
+                                                        "type": "array",
+                                                        "label": "Array"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 106,
+                                            "module": "builtin:BasicAggregator",
+                                            "version": 1,
+                                            "parameters": {
+                                                "feeder": 78,
+                                                "target": "107.rows"
+                                            },
+                                            "mapper": {
+                                                "values": [
+                                                    "{{39.id}}",
+                                                    "{{39.snippet.title}}",
+                                                    "{{78.snippet.title}}",
+                                                    "{{78.snippet.videoOwnerChannelTitle}}",
+                                                    "{{78.contentDetails.videoPublishedAt}}"
+                                                ]
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 2187,
+                                                    "y": 338
+                                                },
+                                                "restore": {
+                                                    "extra": {
+                                                        "feeder": {
+                                                            "label": "Iterator [78]"
+                                                        },
+                                                        "target": {
+                                                            "label": "Rows"
+                                                        }
+                                                    },
+                                                    "expect": {
+                                                        "__IMTTARGET__": {
+                                                            "nested": {
+                                                                "values": {
+                                                                    "mode": "chose",
+                                                                    "items": [
+                                                                        null,
+                                                                        null,
+                                                                        null,
+                                                                        null,
+                                                                        null
+                                                                    ]
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                "expect": [
+                                                    {
+                                                        "name": "values",
+                                                        "spec": {
+                                                            "name": "value",
+                                                            "type": "text",
+                                                            "label": "Column"
+                                                        },
+                                                        "type": "array",
+                                                        "label": "Values"
+                                                    }
+                                                ]
+                                            }
+                                        },
+                                        {
+                                            "id": 107,
+                                            "module": "google-sheets:addMultipleRows",
+                                            "version": 2,
+                                            "parameters": {
+                                                "__IMTCONN__": 9994148
+                                            },
+                                            "mapper": {
+                                                "rows": "{{106.array}}",
+                                                "sheetId": "YoutubeVideos",
+                                                "spreadsheetId": "YOUR_SPREADSHEET_ID",
+                                                "tableFirstRow": "A1:Z1",
+                                                "insertDataOption": "INSERT_ROWS",
+                                                "valueInputOption": "USER_ENTERED",
+                                                "insertUnformatted": false
+                                            },
+                                            "metadata": {
+                                                "designer": {
+                                                    "x": 2487,
+                                                    "y": 338
+                                                },
+                                                "restore": {
+                                                    "expect": {
+                                                        "rows": {
+                                                            "mode": "edit"
+                                                        },
+                                                        "sheetId": {
+                                                            "mode": "edit"
+                                                        },
+                                                        "tableFirstRow": {
+                                                            "label": "A-Z"
+                                                        },
+                                                        "insertDataOption": {
+                                                            "mode": "chose",
+                                                            "label": "Insert rows"
+                                                        },
+                                                        "valueInputOption": {
+                                                            "mode": "chose",
+                                                            "label": "User entered"
+                                                        },
+                                                        "insertUnformatted": {
+                                                            "mode": "chose"
+                                                        }
+                                                    },
+                                                    "parameters": {
+                                                        "__IMTCONN__": {
+                                                            "data": {
+                                                                "scoped": "true",
+                                                                "connection": "google"
+                                                            },
+                                                            "label": "My Google connection (you@example.com)"
+                                                        }
+                                                    }
+                                                },
+                                                "parameters": [
+                                                    {
+                                                        "name": "__IMTCONN__",
+                                                        "type": "account:google",
+                                                        "label": "Connection",
+                                                        "required": true
+                                                    }
+                                                ],
+                                                "expect": [
+                                                    {
+                                                        "name": "spreadsheetId",
+                                                        "type": "text",
+                                                        "label": "Spreadsheet ID",
+                                                        "required": true
+                                                    },
+                                                    {
+                                                        "name": "insertUnformatted",
+                                                        "type": "boolean",
+                                                        "label": "Unformatted",
+                                                        "required": true
+                                                    },
+                                                    {
+                                                        "name": "valueInputOption",
+                                                        "type": "select",
+                                                        "label": "Value input option"
+                                                    },
+                                                    {
+                                                        "name": "insertDataOption",
+                                                        "type": "select",
+                                                        "label": "Insert data option"
+                                                    },
+                                                    {
+                                                        "type": "hidden"
+                                                    },
+                                                    {
+                                                        "mode": "edit",
+                                                        "name": "sheetId",
+                                                        "type": "select",
+                                                        "label": "Sheet Name",
+                                                        "required": true
+                                                    },
+                                                    {
+                                                        "name": "tableFirstRow",
+                                                        "type": "select",
+                                                        "label": "Column range",
+                                                        "required": true,
+                                                        "validate": {
+                                                            "enum": [
+                                                                "A1:Z1",
+                                                                "A1:BZ1",
+                                                                "A1:CZ1",
+                                                                "A1:DZ1",
+                                                                "A1:MZ1",
+                                                                "A1:ZZ1"
+                                                            ]
+                                                        }
+                                                    },
+                                                    {
+                                                        "mode": "edit",
+                                                        "name": "rows",
+                                                        "spec": {
+                                                            "name": "value",
+                                                            "spec": [
+                                                                {
+                                                                    "name": "values",
+                                                                    "spec": {
+                                                                        "type": "text",
+                                                                        "label": "Column"
+                                                                    },
+                                                                    "type": "array",
+                                                                    "label": "Values",
+                                                                    "labels": {
+                                                                        "add": "Add value"
+                                                                    }
+                                                                }
+                                                            ],
+                                                            "type": "collection",
+                                                            "label": "Row"
+                                                        },
+                                                        "type": "array",
+                                                        "label": "Rows"
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "disabled": true,
+                    "flow": [
+                        {
+                            "id": 100,
+                            "module": "builtin:BasicFeeder",
+                            "version": 1,
+                            "parameters": {},
+                            "mapper": {
+                                "array": "{{31.body.items}}"
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -1638,
+                                    "y": 433
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "array": {
+                                            "mode": "edit"
+                                        }
+                                    }
+                                },
+                                "expect": [
+                                    {
+                                        "mode": "edit",
+                                        "name": "array",
+                                        "spec": [],
+                                        "type": "array",
+                                        "label": "Array"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 103,
+                            "module": "builtin:BasicAggregator",
+                            "version": 1,
+                            "parameters": {
+                                "feeder": 100,
+                                "target": "101.rows"
+                            },
+                            "mapper": {
+                                "values": [
+                                    "{{100.snippet.title}}",
+                                    "{{100.snippet.publishedAt}}"
+                                ]
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -1300,
+                                    "y": 428
+                                },
+                                "restore": {
+                                    "extra": {
+                                        "feeder": {
+                                            "label": "Iterator [100]"
+                                        },
+                                        "target": {
+                                            "label": "Rows"
+                                        }
+                                    },
+                                    "expect": {
+                                        "__IMTTARGET__": {
+                                            "nested": {
+                                                "values": {
+                                                    "mode": "chose",
+                                                    "items": [
+                                                        null,
+                                                        null
+                                                    ]
+                                                }
+                                            }
+                                        }
+                                    }
+                                },
+                                "expect": [
+                                    {
+                                        "name": "values",
+                                        "spec": {
+                                            "name": "value",
+                                            "type": "text",
+                                            "label": "Column"
+                                        },
+                                        "type": "array",
+                                        "label": "Values"
+                                    }
+                                ]
+                            }
+                        },
+                        {
+                            "id": 101,
+                            "module": "google-sheets:addMultipleRows",
+                            "version": 2,
+                            "parameters": {
+                                "__IMTCONN__": 9994148
+                            },
+                            "mapper": {
+                                "rows": "{{103.array}}",
+                                "sheetId": "YoutubePlaylist",
+                                "spreadsheetId": "YOUR_SPREADSHEET_ID",
+                                "tableFirstRow": "A1:Z1",
+                                "insertDataOption": "INSERT_ROWS",
+                                "valueInputOption": "USER_ENTERED",
+                                "insertUnformatted": true
+                            },
+                            "metadata": {
+                                "designer": {
+                                    "x": -983,
+                                    "y": 418
+                                },
+                                "restore": {
+                                    "expect": {
+                                        "rows": {
+                                            "mode": "edit"
+                                        },
+                                        "sheetId": {
+                                            "mode": "edit"
+                                        },
+                                        "tableFirstRow": {
+                                            "label": "A-Z"
+                                        },
+                                        "insertDataOption": {
+                                            "mode": "chose",
+                                            "label": "Insert rows"
+                                        },
+                                        "valueInputOption": {
+                                            "mode": "chose",
+                                            "label": "User entered"
+                                        },
+                                        "insertUnformatted": {
+                                            "mode": "chose"
+                                        }
+                                    },
+                                    "parameters": {
+                                        "__IMTCONN__": {
+                                            "data": {
+                                                "scoped": "true",
+                                                "connection": "google"
+                                            },
+                                            "label": "My Google connection (you@example.com)"
+                                        }
+                                    }
+                                },
+                                "parameters": [
+                                    {
+                                        "name": "__IMTCONN__",
+                                        "type": "account:google",
+                                        "label": "Connection",
+                                        "required": true
+                                    }
+                                ],
+                                "expect": [
+                                    {
+                                        "name": "spreadsheetId",
+                                        "type": "text",
+                                        "label": "Spreadsheet ID",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "insertUnformatted",
+                                        "type": "boolean",
+                                        "label": "Unformatted",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "valueInputOption",
+                                        "type": "select",
+                                        "label": "Value input option"
+                                    },
+                                    {
+                                        "name": "insertDataOption",
+                                        "type": "select",
+                                        "label": "Insert data option"
+                                    },
+                                    {
+                                        "type": "hidden"
+                                    },
+                                    {
+                                        "mode": "edit",
+                                        "name": "sheetId",
+                                        "type": "select",
+                                        "label": "Sheet Name",
+                                        "required": true
+                                    },
+                                    {
+                                        "name": "tableFirstRow",
+                                        "type": "select",
+                                        "label": "Column range",
+                                        "required": true,
+                                        "validate": {
+                                            "enum": [
+                                                "A1:Z1",
+                                                "A1:BZ1",
+                                                "A1:CZ1",
+                                                "A1:DZ1",
+                                                "A1:MZ1",
+                                                "A1:ZZ1"
+                                            ]
+                                        }
+                                    },
+                                    {
+                                        "mode": "edit",
+                                        "name": "rows",
+                                        "spec": {
+                                            "name": "value",
+                                            "spec": [
+                                                {
+                                                    "name": "values",
+                                                    "spec": {
+                                                        "type": "text",
+                                                        "label": "Column"
+                                                    },
+                                                    "type": "array",
+                                                    "label": "Values",
+                                                    "labels": {
+                                                        "add": "Add value"
+                                                    }
+                                                }
+                                            ],
+                                            "type": "collection",
+                                            "label": "Row"
+                                        },
+                                        "type": "array",
+                                        "label": "Rows"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "metadata": {
+        "instant": false,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": true,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "eu2.make.com",
+        "notes": []
+    }
+}

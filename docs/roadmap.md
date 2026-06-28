@@ -64,6 +64,7 @@ Status legend: ✅ shipped · 🛠️ in progress · 📋 planned
 
 ## Utilities (target: 7)
 - ✅ Daily Ops Digest
+- ✅ Scrape YouTube Playlists (real export — pagination → Google Sheets)
 - 📋 Scenario health-check watchdog
 - 📋 Webhook fan-out dispatcher
 - 📋 Rate-limited batch processor
