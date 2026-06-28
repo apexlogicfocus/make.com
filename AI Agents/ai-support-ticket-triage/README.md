@@ -15,13 +15,13 @@ A new ticket hits the webhook. An LLM classifies it into a strict JSON schema (`
 | App | Module | Used for |
 |---|---|---|
 | Webhook | Custom webhook | Receive new ticket |
-| OpenAI | Create chat completion | Classify the ticket |
-| JSON | Parse JSON | Validate structured output |
+| HTTP | POST to OpenAI API | Classify the ticket |
+| (built-in) | `parseJSON()` function | Validate structured output |
 | HTTP | PATCH ticket | Write triage back |
-| Slack | Create message | Escalate urgent only |
-| Data Store | Add record | Audit log |
+| HTTP | POST to Slack webhook | Escalate urgent only |
+| HTTP | POST to log sink | Audit log |
 
-> Swap the OpenAI module for the **Anthropic Claude** module if you prefer — the prompt and JSON contract are identical. The prompt is versioned in [`examples/prompts/support-triage.md`](../../examples/prompts/support-triage.md).
+> Point the HTTP `url` at the **Anthropic Claude** API (or your own gateway) if you prefer — the prompt and JSON contract are identical. The prompt is versioned in [`examples/prompts/support-triage.md`](../../examples/prompts/support-triage.md).
 
 ## Setup
 
@@ -55,4 +55,4 @@ The system prompt forces minified JSON with a fixed enum vocabulary, and the JSO
 
 - LLM call `Break`-retries 3× / 3 min (model endpoints rate-limit; short backoff).
 - JSON parse failure logs `error` and `Resume`s → ticket stays for a human.
-- Ticket update `Break`-retries; Slack `Resume`s. Every ticket gets one log row keyed by ticket id.
+- Ticket update `Break`-retries; Slack `Resume`s. Every ticket produces one log row carrying the ticket id.

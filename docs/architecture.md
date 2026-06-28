@@ -61,7 +61,7 @@ flowchart LR
     J -->|bad| RE[Retry / fallback]
     ACT --> LOG[(Log)]
 ```
-Always request **structured output** and validate it before acting. The prompt lives in [examples/prompts](../examples/prompts/), versioned separately from the blueprint.
+Always request **structured output** and validate it before acting. The LLM is called via an HTTP POST to the provider's chat-completions endpoint (`response_format: json_object`), and the JSON is read back with Make's built-in **`parseJSON()`** function — e.g. `{{parseJSON(2.data.choices[1].message.content).priority}}` — so no separate parse module is needed. The prompt lives in [examples/prompts](../examples/prompts/), versioned separately from the blueprint.
 
 ### Finance
 ```mermaid

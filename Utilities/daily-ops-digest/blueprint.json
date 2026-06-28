@@ -3,20 +3,21 @@
   "flow": [
     {
       "id": 1,
-      "module": "datastore:CountRecords",
-      "version": 1,
-      "parameters": { "datastore": "1" },
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
       "mapper": {
-        "filter": [
-          [
-            { "a": "status", "o": "text:equal", "b": "success" },
-            { "a": "timestamp", "o": "date:greaterorequal", "b": "{{addDays(now; -1)}}" }
-          ]
-        ]
+        "url": "https://YOUR_LOG_SINK/summary",
+        "method": "get",
+        "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+        "qs": [
+          { "name": "since", "value": "{{addDays(now; -1)}}" }
+        ],
+        "parseResponse": true
       },
       "metadata": {
         "designer": { "x": 0, "y": 0 },
-        "restore": { "parameters": { "datastore": { "label": "Automation Log" } } }
+        "restore": { "parameters": { "url": { "label": "Query Automation Log summary (last 24h)" } } }
       },
       "onerror": [
         { "id": 11, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "2", "interval": "3", "retry": true }, "metadata": { "designer": { "x": 0, "y": 300 } } }
@@ -24,55 +25,25 @@
     },
     {
       "id": 2,
-      "module": "datastore:CountRecords",
-      "version": 1,
-      "parameters": { "datastore": "1" },
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
       "mapper": {
-        "filter": [
-          [
-            { "a": "status", "o": "text:equal", "b": "error" },
-            { "a": "timestamp", "o": "date:greaterorequal", "b": "{{addDays(now; -1)}}" }
-          ]
-        ]
-      },
-      "metadata": { "designer": { "x": 300, "y": 0 } },
-      "onerror": [
-        { "id": 21, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "2", "interval": "3", "retry": true }, "metadata": { "designer": { "x": 300, "y": 300 } } }
-      ]
-    },
-    {
-      "id": 3,
-      "module": "datastore:CountRecords",
-      "version": 1,
-      "parameters": { "datastore": "1" },
-      "mapper": {
-        "filter": [
-          [
-            { "a": "status", "o": "text:equal", "b": "escalated" },
-            { "a": "timestamp", "o": "date:greaterorequal", "b": "{{addDays(now; -1)}}" }
-          ]
-        ]
-      },
-      "metadata": { "designer": { "x": 600, "y": 0 } },
-      "onerror": [
-        { "id": 31, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "0" }, "metadata": { "designer": { "x": 600, "y": 300 } } }
-      ]
-    },
-    {
-      "id": 4,
-      "module": "slack:CreateMessage",
-      "version": 1,
-      "parameters": {},
-      "mapper": {
-        "channel": "{{connection.opsChannelId}}",
-        "text": ":bar_chart: *Daily Ops Digest* — {{formatDate(now; \"ddd, MMM D\")}}\n:white_check_mark: Successful runs (24h): *{{1.count}}*\n:x: Errors (24h): *{{2.count}}*\n:warning: Escalations (24h): *{{3.count}}*\n{{if(2.count > 0; \":point_right: Check the Automation Log for error rows.\"; \"All systems healthy. :tada:\")}}"
+        "url": "https://hooks.slack.com/services/REPLACE_WITH_YOUR_SLACK_WEBHOOK",
+        "method": "post",
+        "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": false,
+        "contentType": "application/json",
+        "data": "{\n  \"text\": \":bar_chart: *Daily Ops Digest* — {{formatDate(now; \\\"ddd, MMM D\\\")}}\\n:white_check_mark: Successful runs (24h): *{{1.data.success}}*\\n:x: Errors (24h): *{{1.data.error}}*\\n:warning: Escalations (24h): *{{1.data.escalated}}*\\n{{if(1.data.error > 0; \\\"Check the Automation Log for error rows.\\\"; \\\"All systems healthy.\\\")}}\"\n}"
       },
       "metadata": {
-        "designer": { "x": 900, "y": 0 },
-        "restore": { "parameters": { "channel": { "label": "#ops" } } }
+        "designer": { "x": 300, "y": 0 },
+        "restore": { "parameters": { "url": { "label": "Slack incoming webhook (#ops)" } } }
       },
       "onerror": [
-        { "id": 41, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 900, "y": 300 } } }
+        { "id": 21, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 300, "y": 300 } } }
       ]
     }
   ],

@@ -17,8 +17,8 @@ A booking tool (Calendly, Cal.com, HubSpot Meetings) fires a webhook. The scenar
 | Webhook | Custom webhook | Receive booking event |
 | HTTP | Upsert contact | Create/match the invitee |
 | HTTP | Create deal | Open the opportunity |
-| Data Store | Add record | Audit log |
-| Slack | Create message | Notify the rep |
+| HTTP | POST to log sink | Audit log |
+| HTTP | POST to Slack webhook | Notify the rep |
 
 ## Setup
 
@@ -26,7 +26,7 @@ A booking tool (Calendly, Cal.com, HubSpot Meetings) fires a webhook. The scenar
 |---|---|---|
 | Pipeline / stage | Module 3 body | `sales` / `meeting-booked` |
 | Owner routing | Module 3 `ownerEmail` | `{{1.host.email}}` |
-| Slack channel | Module 5 | `#sales` |
+| Slack webhook | Module 5 → `url` | `https://hooks.slack.com/services/…` |
 
 Map your booking tool's payload fields (`invitee.email`, `event.startTime`, `host.email`) to whatever your provider sends — see [`examples/payloads/booking.json`](../../examples/payloads/booking.json).
 
@@ -44,4 +44,4 @@ flowchart LR
 
 - Contact upsert and deal creation both `Break`-retry 3× / 5 min on transient failure.
 - Slack `Resume`s on failure — a missed notification never loses the deal.
-- Deal id is the log key, so re-fires from a flaky webhook are easy to spot.
+- Each log row carries the deal id, so re-fires from a flaky webhook are easy to trace in the log sink.

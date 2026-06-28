@@ -48,21 +48,23 @@ Every blueprint is built against five engineering standards. See [docs/conventio
 
 | Standard | How it shows up in the blueprints |
 |---|---|
-| 🔁 **Retries** | Fragile HTTP/API modules wrap a `Break` error handler with backoff (e.g. 3 attempts, 5-min interval) so transient failures self-heal. |
-| 📜 **Logging** | Every run appends a structured row (timestamp, status, record id, message) to a Data Store or Google Sheet audit log. |
-| 🔔 **Notifications** | Failures and key successes fan out to Slack / email so humans stay in the loop. |
-| 🤖 **AI agents** | The `AI Agents/` category uses LLM modules with structured-output prompting (see [examples/prompts](examples/prompts/)). |
+| 🔁 **Retries** | Fragile API calls wrap a `Break` error handler with backoff (e.g. 3 attempts, 5-min interval) so transient failures self-heal. |
+| 📜 **Logging** | Every run POSTs a structured row (timestamp, status, record id, message) to a single [log sink](docs/log-sink.md) audit trail. |
+| 🔔 **Notifications** | Failures and key successes POST to a Slack (or Discord/Teams) incoming webhook so humans stay in the loop. |
+| 🤖 **AI agents** | The `AI Agents/` category calls the LLM over HTTP with `response_format: json_object`, then validates with Make's `parseJSON()` (see [examples/prompts](examples/prompts/)). |
 | 🧩 **Reusability** | Shared error-handler / logger / notifier patterns are documented once in [Shared Modules](Shared%20Modules/) and reused everywhere. |
+
+> **Integration-agnostic by design.** Every external call is a plain HTTP module + Make's universal building blocks — so blueprints import into *any* Make account (no "Module Not Found"), and you point them at whatever CRM / LLM / notifier you use. [Why →](docs/conventions.md#0-integration-agnostic-by-design-http-first)
 
 ---
 
 ## 🚀 Quick start
 
 1. **Open Make.com** → *Create a new scenario* → **⋯ menu → Import Blueprint**.
-2. Pick any `blueprint.json` from a folder below (e.g. [`CRM/lead-capture-to-crm/blueprint.json`](CRM/lead-capture-to-crm/blueprint.json)).
-3. Reconnect the apps (the blueprints ship **without** credentials — you wire your own connections).
-4. Read that blueprint's `README.md` for required fields, env values, and test payloads in [`examples/`](examples/).
-5. Run once with test data, confirm the log row + notification, then turn the schedule on.
+2. Pick any `blueprint.json` from a folder below (e.g. [`CRM/lead-capture-to-crm/blueprint.json`](CRM/lead-capture-to-crm/blueprint.json)). It imports with every module intact.
+3. **Edit the placeholders** in each HTTP module — swap `https://YOUR_CRM_API/…` for your real endpoint, `Bearer YOUR_*_API_KEY` for your key, and `https://hooks.slack.com/services/REPLACE…` for your Slack webhook.
+4. Set up the [log sink](docs/log-sink.md) once (a tiny Data Store / Sheet / Airtable scenario), and point `https://YOUR_LOG_SINK` at it.
+5. Read that blueprint's `README.md` for fields + test payloads in [`examples/`](examples/). Run once with test data, confirm the log row + notification, then turn the schedule on.
 
 Full walkthrough with screenshots: [docs/getting-started.md](docs/getting-started.md).
 

@@ -15,12 +15,12 @@ When you publish content, the webhook fires with the title, URL, and body. An LL
 | App | Module | Used for |
 |---|---|---|
 | Webhook | Custom webhook | Receive published content |
-| OpenAI | Create chat completion | Generate the four formats |
-| JSON | Parse JSON | Validate output |
-| Slack | Create message | Post drafts for review |
-| Data Store | Add record | Audit log |
+| HTTP | POST to OpenAI API | Generate the four formats |
+| (built-in) | `parseJSON()` function | Validate output |
+| HTTP | POST to Slack webhook | Post drafts for review |
+| HTTP | POST to log sink | Audit log |
 
-> Prompt is versioned at [`examples/prompts/content-repurposer.md`](../../examples/prompts/content-repurposer.md). Swap OpenAI for Claude with no other change.
+> Prompt is versioned at [`examples/prompts/content-repurposer.md`](../../examples/prompts/content-repurposer.md). Point the HTTP `url` at Anthropic's API (or your gateway) to switch providers — no other change.
 
 ## Setup
 

@@ -21,7 +21,7 @@
         "url": "https://YOUR_CRM_API/v1/contacts/upsert",
         "method": "post",
         "headers": [
-          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Authorization", "value": "Bearer YOUR_CRM_API_KEY" },
           { "name": "Content-Type", "value": "application/json" }
         ],
         "qs": [],
@@ -35,14 +35,7 @@
         "restore": { "parameters": { "url": { "label": "Upsert contact" } } }
       },
       "onerror": [
-        {
-          "id": 21,
-          "module": "builtin:Break",
-          "version": 1,
-          "parameters": {},
-          "mapper": { "count": "3", "interval": "5", "retry": true },
-          "metadata": { "designer": { "x": 300, "y": 300 } }
-        }
+        { "id": 21, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 300, "y": 300 } } }
       ]
     },
     {
@@ -54,7 +47,7 @@
         "url": "https://YOUR_CRM_API/v1/deals",
         "method": "post",
         "headers": [
-          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Authorization", "value": "Bearer YOUR_CRM_API_KEY" },
           { "name": "Content-Type", "value": "application/json" }
         ],
         "qs": [],
@@ -68,56 +61,50 @@
         "restore": { "parameters": { "url": { "label": "Create deal" } } }
       },
       "onerror": [
-        {
-          "id": 31,
-          "module": "builtin:Break",
-          "version": 1,
-          "parameters": {},
-          "mapper": { "count": "3", "interval": "5", "retry": true },
-          "metadata": { "designer": { "x": 600, "y": 300 } }
-        }
+        { "id": 31, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 600, "y": 300 } } }
       ]
     },
     {
       "id": 4,
-      "module": "datastore:AddReplaceRecord",
-      "version": 1,
-      "parameters": { "datastore": "1" },
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
       "mapper": {
-        "key": "deal-{{3.data.id}}",
-        "overwrite": false,
-        "record": {
-          "timestamp": "{{now}}",
-          "scenario": "meeting-booked-to-deal",
-          "status": "success",
-          "record_id": "{{1.invitee.email}}",
-          "message": "Deal {{3.data.id}} created for {{1.invitee.company}}"
-        }
+        "url": "https://YOUR_LOG_SINK/append",
+        "method": "post",
+        "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": false,
+        "contentType": "application/json",
+        "data": "{\n  \"timestamp\": \"{{now}}\",\n  \"scenario\": \"meeting-booked-to-deal\",\n  \"status\": \"success\",\n  \"record_id\": \"{{1.invitee.email}}\",\n  \"message\": \"Deal {{3.data.id}} created for {{1.invitee.company}}\"\n}"
       },
-      "metadata": { "designer": { "x": 900, "y": 0 } }
+      "metadata": { "designer": { "x": 900, "y": 0 } },
+      "onerror": [
+        { "id": 41, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "logged" }, "metadata": { "designer": { "x": 900, "y": 300 } } }
+      ]
     },
     {
       "id": 5,
-      "module": "slack:CreateMessage",
-      "version": 1,
-      "parameters": {},
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
       "mapper": {
-        "channel": "{{connection.channelId}}",
-        "text": ":calendar: *Meeting booked → deal created*\n{{1.invitee.firstName}} {{1.invitee.lastName}} ({{1.invitee.company}})\nOwner: {{1.host.email}}\nWhen: {{formatDate(1.event.startTime; \"YYYY-MM-DD HH:mm\")}}\nDeal: {{3.data.id}}"
+        "url": "https://hooks.slack.com/services/REPLACE_WITH_YOUR_SLACK_WEBHOOK",
+        "method": "post",
+        "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": false,
+        "contentType": "application/json",
+        "data": "{\n  \"text\": \":calendar: *Meeting booked → deal created*\\n{{1.invitee.firstName}} {{1.invitee.lastName}} ({{1.invitee.company}})\\nOwner: {{1.host.email}}\\nWhen: {{formatDate(1.event.startTime; \\\"YYYY-MM-DD HH:mm\\\")}}\\nDeal: {{3.data.id}}\"\n}"
       },
       "metadata": {
         "designer": { "x": 1200, "y": 0 },
-        "restore": { "parameters": { "channel": { "label": "#sales" } } }
+        "restore": { "parameters": { "url": { "label": "Slack incoming webhook (#sales)" } } }
       },
       "onerror": [
-        {
-          "id": 51,
-          "module": "builtin:Resume",
-          "version": 1,
-          "parameters": {},
-          "mapper": { "value": "notify-skipped" },
-          "metadata": { "designer": { "x": 1200, "y": 300 } }
-        }
+        { "id": 51, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "notify-skipped" }, "metadata": { "designer": { "x": 1200, "y": 300 } } }
       ]
     }
   ],

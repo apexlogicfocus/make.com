@@ -16,20 +16,20 @@ A form / landing page POSTs a lead to a Make webhook. The scenario validates the
 |---|---|---|---|
 | Webhook | Custom webhook | Receive the lead | (auto URL) |
 | HTTP | Make a request ×2 | Search + upsert in your CRM | Bearer API key |
-| Data Store | Add/replace record ×2 | Audit log | A Data Store named **Automation Log** |
-| Slack | Create a message | Notify sales | Slack connection + channel |
+| HTTP | POST to log sink ×2 | Audit log (success + skipped) | [Log sink](../../docs/log-sink.md) URL |
+| HTTP | POST to Slack webhook | Notify sales | Slack incoming webhook URL |
 
-> The CRM calls use generic **HTTP** so this works with any CRM (HubSpot, Pipedrive, Attio, custom). Swap the two HTTP modules for native CRM modules if you prefer.
+> Every call is a generic **HTTP** module, so this works with any CRM (HubSpot, Pipedrive, Attio, custom) and any notifier. Swap an HTTP module for a native Make app module if you prefer.
 
 ## Setup
 
 | Setting | Where | Example |
 |---|---|---|
 | CRM base URL | Both HTTP modules → `url` | `https://api.hubapi.com` |
-| API key | HTTP headers → `Authorization` | `Bearer ••••` (your connection) |
+| API key | HTTP headers → `Authorization` | `Bearer YOUR_CRM_API_KEY` |
 | Match field | Upsert body → `matchField` | `email` |
-| Log store | Data Store modules | Data Store `Automation Log`, key field `key` |
-| Slack channel | Slack module → `channel` | `#leads` |
+| Log sink | Log POSTs → `url` | `https://YOUR_LOG_SINK/append` ([setup](../../docs/log-sink.md)) |
+| Slack webhook | Notify module → `url` | `https://hooks.slack.com/services/…` |
 
 ## Test payload
 
@@ -62,6 +62,6 @@ flowchart LR
 
 - Both HTTP modules carry an `onerror → Break` (3 attempts, 5-min interval) so a transient CRM 5xx or rate-limit retries instead of dropping the lead.
 - The Slack module uses `Resume` — if alerting fails, the lead is still saved and logged; we don't fail the whole run over a notification.
-- Every path writes a structured row to the **Automation Log** Data Store (`success` or `skipped`).
+- Every path POSTs a structured row to the **log sink** (`success` or `skipped`), each guarded by `Resume` so logging never breaks the run.
 
 See the [conventions](../../docs/conventions.md) for the shared standard.

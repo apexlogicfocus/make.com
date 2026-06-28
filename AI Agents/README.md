@@ -7,6 +7,6 @@ LLM-powered scenarios. The non-negotiable pattern: **structured output + validat
 | [AI Support Ticket Triage](ai-support-ticket-triage/) | Classify, prioritize, route tickets; escalate urgent to on-call |
 | [AI Content Repurposer](ai-content-repurposer/) | One article → LinkedIn + thread + newsletter, human-approved |
 
-Prompts are versioned in [`examples/prompts`](../examples/prompts/). Every blueprint works with **OpenAI or Anthropic Claude** — same JSON contract, swap the module.
+Prompts are versioned in [`examples/prompts`](../examples/prompts/). The LLM is called over HTTP, so every blueprint works with **OpenAI, Anthropic Claude, or your own gateway** — same JSON contract, just point the `url` at your provider. Output is parsed with Make's built-in `parseJSON()`.
 
 **Planned:** RAG FAQ responder, lead scorer, call summarizer, document extractor. See [roadmap](../docs/roadmap.md).

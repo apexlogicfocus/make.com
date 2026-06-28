@@ -4,6 +4,20 @@ Every blueprint in this library is built against the same standards. If you cont
 
 ---
 
+## 0. Integration-agnostic by design (HTTP-first)
+
+Every external call — CRM, email platform, Slack, LLM, logging — is a plain **HTTP module** (`http:ActionSendData`) pointed at a documented endpoint, plus Make's universal building blocks (`builtin:BasicRouter`, `builtin:BasicFeeder`, `builtin:Break`, `builtin:Resume`, `gateway:CustomWebHook`).
+
+Why this matters:
+
+- **Imports everywhere.** No dependency on a specific app's module identifier or version — these six module types are stable across every Make account, so a blueprint never imports as "Module Not Found."
+- **Vendor-neutral.** Point the CRM modules at HubSpot, Pipedrive, or Attio; the LLM module at OpenAI, Anthropic, or your gateway; the notifier at any Slack/Discord/Teams webhook. Same blueprint.
+- **Readable.** One module type, one mental model.
+
+If you prefer a native Make app module (e.g. the official Slack or OpenAI module) in your own copy, swap the HTTP module for it — the data flow is identical. The HTTP form is the portable default.
+
+---
+
 ## 1. Module ID & layout discipline
 
 - Module IDs are **sequential integers** starting at `1`, in execution order.
@@ -34,23 +48,23 @@ Any module that talks to an external API over the network is **fragile** — it 
 
 ## 3. Logging (an audit trail you can query)
 
-Every blueprint writes a **structured log row** at the end of each run — success *and* failure. Standard schema:
+Every blueprint writes a **structured log row** at the end of each run — success *and* failure — by `POST`ing it to a **log sink** endpoint (`https://YOUR_LOG_SINK/append`). Standard schema:
 
 | Field | Example |
 |---|---|
 | `timestamp` | `2026-06-28T14:03:11Z` |
 | `scenario` | `lead-capture-to-crm` |
-| `status` | `success` \| `error` \| `skipped` |
+| `status` | `success` \| `error` \| `skipped` \| `escalated` |
 | `record_id` | external id or email |
 | `message` | human-readable detail |
 
-Sink options (pick one per environment): **Make Data Store** (fastest, no external app) or **Google Sheets** (human-browsable). The blueprints default to Data Store; swap the final module if you prefer Sheets. See [Shared Modules](../Shared%20Modules/).
+The log sink is any HTTP endpoint that accepts that JSON: a **second Make scenario** with a webhook that writes to a Make Data Store, a **Google Sheet** via Apps Script, **Airtable**, or a logging service. [`Utilities/daily-ops-digest`](../Utilities/daily-ops-digest/) reads it back via `GET /summary?since=…`. Full contract: [log-sink.md](log-sink.md). The logging module always carries a `Resume` handler so a logging hiccup never breaks the run.
 
 ## 4. Notifications (humans stay in the loop)
 
-- **Failures** after retries are exhausted → notify a Slack channel (or email fallback) with scenario name, record id, and the error message.
-- **High-value successes** (a deal created, a contract signed) → optional success ping.
-- Notifications are routed, never inline in the happy path, so they can be toggled without touching core logic.
+- Notifications go out via an **HTTP POST to a Slack incoming webhook** (`https://hooks.slack.com/services/…`) — works in any workspace, no Slack connection or app install needed. Swap the URL for a Discord/Teams webhook and it still works.
+- **Failures** after retries are exhausted, and **high-value successes** (a deal created), trigger a notification with scenario name, record id, and detail.
+- Notifiers always carry a `Resume` handler — a missed notification never fails the run — and are routed/terminal, never inline in the happy path.
 
 ## 5. Secrets & sanitization
 

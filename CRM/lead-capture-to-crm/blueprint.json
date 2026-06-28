@@ -5,18 +5,11 @@
       "id": 1,
       "module": "gateway:CustomWebHook",
       "version": 1,
-      "parameters": {
-        "hook": 0,
-        "maxResults": 1
-      },
+      "parameters": { "hook": 0, "maxResults": 1 },
       "mapper": {},
       "metadata": {
         "designer": { "x": 0, "y": 0 },
-        "restore": {
-          "parameters": {
-            "hook": { "label": "Lead Capture Webhook" }
-          }
-        }
+        "restore": { "parameters": { "hook": { "label": "Lead Capture Webhook" } } }
       }
     },
     {
@@ -24,9 +17,7 @@
       "module": "builtin:BasicRouter",
       "version": 1,
       "mapper": null,
-      "metadata": {
-        "designer": { "x": 300, "y": 0 }
-      },
+      "metadata": { "designer": { "x": 300, "y": 0 } },
       "routes": [
         {
           "flow": [
@@ -48,7 +39,7 @@
                 "url": "https://YOUR_CRM_API/v1/contacts/search",
                 "method": "post",
                 "headers": [
-                  { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+                  { "name": "Authorization", "value": "Bearer YOUR_CRM_API_KEY" },
                   { "name": "Content-Type", "value": "application/json" }
                 ],
                 "qs": [],
@@ -81,7 +72,7 @@
                 "url": "https://YOUR_CRM_API/v1/contacts/upsert",
                 "method": "post",
                 "headers": [
-                  { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+                  { "name": "Authorization", "value": "Bearer YOUR_CRM_API_KEY" },
                   { "name": "Content-Type", "value": "application/json" }
                 ],
                 "qs": [],
@@ -107,47 +98,48 @@
             },
             {
               "id": 5,
-              "module": "datastore:AddReplaceRecord",
-              "version": 1,
-              "parameters": { "datastore": "1" },
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "mapper": {
-                "key": "{{1.email}}-{{now}}",
-                "overwrite": false,
-                "record": {
-                  "timestamp": "{{now}}",
-                  "scenario": "lead-capture-to-crm",
-                  "status": "success",
-                  "record_id": "{{1.email}}",
-                  "message": "Contact upserted (id {{4.data.id}})"
-                }
+                "url": "https://YOUR_LOG_SINK/append",
+                "method": "post",
+                "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": false,
+                "contentType": "application/json",
+                "data": "{\n  \"timestamp\": \"{{now}}\",\n  \"scenario\": \"lead-capture-to-crm\",\n  \"status\": \"success\",\n  \"record_id\": \"{{1.email}}\",\n  \"message\": \"Contact upserted (id {{4.data.id}})\"\n}"
               },
               "metadata": {
                 "designer": { "x": 1200, "y": 0 },
-                "restore": { "parameters": { "datastore": { "label": "Automation Log" } } }
-              }
+                "restore": { "parameters": { "url": { "label": "Append to Automation Log" } } }
+              },
+              "onerror": [
+                { "id": 51, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "logged" }, "metadata": { "designer": { "x": 1200, "y": 300 } } }
+              ]
             },
             {
               "id": 6,
-              "module": "slack:CreateMessage",
-              "version": 1,
-              "parameters": {},
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "mapper": {
-                "channel": "{{connection.channelId}}",
-                "text": ":sparkles: *New lead captured*\nName: {{1.firstName}} {{1.lastName}}\nCompany: {{1.company}}\nEmail: {{1.email}}\nSource: {{1.source}}"
+                "url": "https://hooks.slack.com/services/REPLACE_WITH_YOUR_SLACK_WEBHOOK",
+                "method": "post",
+                "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": false,
+                "contentType": "application/json",
+                "data": "{\n  \"text\": \":sparkles: *New lead captured*\\nName: {{1.firstName}} {{1.lastName}}\\nCompany: {{1.company}}\\nEmail: {{1.email}}\\nSource: {{1.source}}\"\n}"
               },
               "metadata": {
                 "designer": { "x": 1500, "y": 0 },
-                "restore": { "parameters": { "channel": { "label": "#leads" } } }
+                "restore": { "parameters": { "url": { "label": "Slack incoming webhook (#leads)" } } }
               },
               "onerror": [
-                {
-                  "id": 61,
-                  "module": "builtin:Resume",
-                  "version": 1,
-                  "parameters": {},
-                  "mapper": { "value": "notify-skipped" },
-                  "metadata": { "designer": { "x": 1500, "y": 300 } }
-                }
+                { "id": 61, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "notify-skipped" }, "metadata": { "designer": { "x": 1500, "y": 300 } } }
               ]
             }
           ]
@@ -156,9 +148,9 @@
           "flow": [
             {
               "id": 7,
-              "module": "datastore:AddReplaceRecord",
-              "version": 1,
-              "parameters": { "datastore": "1" },
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "filter": {
                 "name": "Invalid / missing email",
                 "conditions": [
@@ -166,20 +158,22 @@
                 ]
               },
               "mapper": {
-                "key": "invalid-{{now}}",
-                "overwrite": false,
-                "record": {
-                  "timestamp": "{{now}}",
-                  "scenario": "lead-capture-to-crm",
-                  "status": "skipped",
-                  "record_id": "{{1.email}}",
-                  "message": "Rejected: missing or invalid email"
-                }
+                "url": "https://YOUR_LOG_SINK/append",
+                "method": "post",
+                "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": false,
+                "contentType": "application/json",
+                "data": "{\n  \"timestamp\": \"{{now}}\",\n  \"scenario\": \"lead-capture-to-crm\",\n  \"status\": \"skipped\",\n  \"record_id\": \"{{1.email}}\",\n  \"message\": \"Rejected: missing or invalid email\"\n}"
               },
               "metadata": {
                 "designer": { "x": 600, "y": 450 },
-                "restore": { "parameters": { "datastore": { "label": "Automation Log" } } }
-              }
+                "restore": { "parameters": { "url": { "label": "Append to Automation Log" } } }
+              },
+              "onerror": [
+                { "id": 71, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "logged" }, "metadata": { "designer": { "x": 600, "y": 750 } } }
+              ]
             }
           ]
         }

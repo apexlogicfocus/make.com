@@ -10,7 +10,7 @@
         "url": "https://YOUR_CRM_API/v1/contacts/search",
         "method": "post",
         "headers": [
-          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Authorization", "value": "Bearer YOUR_CRM_API_KEY" },
           { "name": "Content-Type", "value": "application/json" }
         ],
         "qs": [],
@@ -24,14 +24,7 @@
         "restore": { "parameters": { "url": { "label": "Search un-enriched contacts" } } }
       },
       "onerror": [
-        {
-          "id": 11,
-          "module": "builtin:Break",
-          "version": 1,
-          "parameters": {},
-          "mapper": { "count": "3", "interval": "5", "retry": true },
-          "metadata": { "designer": { "x": 0, "y": 300 } }
-        }
+        { "id": 11, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 0, "y": 300 } } }
       ]
     },
     {
@@ -54,7 +47,7 @@
         "url": "https://YOUR_ENRICHMENT_API/v1/enrich",
         "method": "get",
         "headers": [
-          { "name": "Authorization", "value": "Bearer {{connection.enrichKey}}" }
+          { "name": "Authorization", "value": "Bearer YOUR_ENRICHMENT_API_KEY" }
         ],
         "qs": [
           { "name": "email", "value": "{{2.email}}" },
@@ -69,30 +62,22 @@
       "onerror": [
         {
           "id": 31,
-          "module": "datastore:AddReplaceRecord",
-          "version": 1,
-          "parameters": { "datastore": "1" },
+          "module": "http:ActionSendData",
+          "version": 3,
+          "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
           "mapper": {
-            "key": "enrich-err-{{2.id}}-{{now}}",
-            "overwrite": false,
-            "record": {
-              "timestamp": "{{now}}",
-              "scenario": "crm-contact-enrichment",
-              "status": "error",
-              "record_id": "{{2.email}}",
-              "message": "Enrichment lookup failed for {{2.email}}"
-            }
+            "url": "https://YOUR_LOG_SINK/append",
+            "method": "post",
+            "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+            "qs": [],
+            "bodyType": "raw",
+            "parseResponse": false,
+            "contentType": "application/json",
+            "data": "{\n  \"timestamp\": \"{{now}}\",\n  \"scenario\": \"crm-contact-enrichment\",\n  \"status\": \"error\",\n  \"record_id\": \"{{2.email}}\",\n  \"message\": \"Enrichment lookup failed for {{2.email}}\"\n}"
           },
           "metadata": { "designer": { "x": 600, "y": 300 } },
           "onerror": [
-            {
-              "id": 32,
-              "module": "builtin:Resume",
-              "version": 1,
-              "parameters": {},
-              "mapper": { "value": "logged" },
-              "metadata": { "designer": { "x": 600, "y": 600 } }
-            }
+            { "id": 32, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "logged" }, "metadata": { "designer": { "x": 600, "y": 600 } } }
           ]
         }
       ]
@@ -106,7 +91,7 @@
         "url": "https://YOUR_CRM_API/v1/contacts/{{2.id}}",
         "method": "patch",
         "headers": [
-          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Authorization", "value": "Bearer YOUR_CRM_API_KEY" },
           { "name": "Content-Type", "value": "application/json" }
         ],
         "qs": [],
@@ -120,33 +105,28 @@
         "restore": { "parameters": { "url": { "label": "Write enrichment back" } } }
       },
       "onerror": [
-        {
-          "id": 41,
-          "module": "builtin:Break",
-          "version": 1,
-          "parameters": {},
-          "mapper": { "count": "3", "interval": "10", "retry": true },
-          "metadata": { "designer": { "x": 900, "y": 300 } }
-        }
+        { "id": 41, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "10", "retry": true }, "metadata": { "designer": { "x": 900, "y": 300 } } }
       ]
     },
     {
       "id": 5,
-      "module": "datastore:AddReplaceRecord",
-      "version": 1,
-      "parameters": { "datastore": "1" },
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
       "mapper": {
-        "key": "enrich-ok-{{2.id}}-{{now}}",
-        "overwrite": false,
-        "record": {
-          "timestamp": "{{now}}",
-          "scenario": "crm-contact-enrichment",
-          "status": "success",
-          "record_id": "{{2.email}}",
-          "message": "Enriched: {{3.data.title}} @ {{3.data.company.industry}}"
-        }
+        "url": "https://YOUR_LOG_SINK/append",
+        "method": "post",
+        "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": false,
+        "contentType": "application/json",
+        "data": "{\n  \"timestamp\": \"{{now}}\",\n  \"scenario\": \"crm-contact-enrichment\",\n  \"status\": \"success\",\n  \"record_id\": \"{{2.email}}\",\n  \"message\": \"Enriched: {{3.data.title}} @ {{3.data.company.industry}}\"\n}"
       },
-      "metadata": { "designer": { "x": 1200, "y": 0 } }
+      "metadata": { "designer": { "x": 1200, "y": 0 } },
+      "onerror": [
+        { "id": 51, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "logged" }, "metadata": { "designer": { "x": 1200, "y": 300 } } }
+      ]
     }
   ],
   "metadata": {

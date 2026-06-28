@@ -12,7 +12,7 @@ Daily, it finds all open invoices past their due date and routes each one by **h
 | 14–29 days | Email reminder | Firm, mentions late fee |
 | 30+ days | Slack to finance team | Human escalation — stop emailing, start calling |
 
-Every action is logged once per invoice per day.
+Every action is logged. Scheduled daily, so an invoice gets one reminder per day.
 
 ## Trigger
 
@@ -25,9 +25,9 @@ Every action is logged once per invoice per day.
 | HTTP | Search invoices | Pull open overdue invoices |
 | Iterator | Basic feeder | Loop invoices |
 | Router | Basic router | Branch by age |
-| Email | Send email | Stage 1 & 2 reminders |
-| Slack | Create message | Stage 3 escalation |
-| Data Store | Add record | Audit log |
+| HTTP | POST to email API | Stage 1 & 2 reminders |
+| HTTP | POST to Slack webhook | Stage 3 escalation |
+| HTTP | POST to log sink | Audit log |
 
 ## Setup
 
@@ -52,5 +52,5 @@ flowchart LR
 
 - Search `Break`-retries 3× / 5 min.
 - Each email `Break`-retries 3× / 10 min (SMTP can be flaky; longer backoff).
-- Log key is `dun-<invoiceId>-<YYYYMMDD>` with `overwrite: true` — an invoice gets exactly one reminder per day, no matter how often the scenario runs.
+- Scheduled once daily, so each invoice advances one stage per day; each log row records the invoice number and stage. (For hard idempotency on manual re-runs, have your log sink upsert by `<invoiceId>-<date>`.)
 - The `escalated` status lets you filter the log for invoices a human must chase.

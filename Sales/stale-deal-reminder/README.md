@@ -4,7 +4,7 @@
 
 ## What it does
 
-On a daily schedule, it searches for open deals with **no activity in 7+ days**, and for each one creates a follow-up task due tomorrow, DMs the owner in Slack, and logs the nudge (idempotent per day so an owner isn't pinged twice).
+On a daily schedule, it searches for open deals with **no activity in 7+ days**, and for each one creates a follow-up task due tomorrow, notifies the owner's Slack channel, and logs the nudge. Because it runs once a day, each deal is nudged at most once per day.
 
 ## Trigger
 
@@ -17,8 +17,8 @@ On a daily schedule, it searches for open deals with **no activity in 7+ days**,
 | HTTP | Search deals | Find idle open deals |
 | Iterator | Basic feeder | Loop the results |
 | HTTP | Create task | Put a follow-up on the owner's list |
-| Slack | Create message | DM the owner |
-| Data Store | Add record | Audit log (dedup per day) |
+| HTTP | POST to Slack webhook | Notify the owner's channel |
+| HTTP | POST to log sink | Audit log |
 
 ## Setup
 
@@ -43,4 +43,4 @@ flowchart LR
 
 - Search + task creation `Break`-retry 3× / 5 min.
 - Slack `Resume`s — a failed DM still leaves the task + log in place.
-- Log key includes the date (`stale-<dealId>-YYYYMMDD`) with `overwrite: true`, so the same deal yields at most one reminder per day even if the scenario re-runs.
+- Scheduled once daily, so each deal is nudged at most once per day; the log row records the deal id and owner for traceability. (Want hard idempotency on manual re-runs? Have your log sink upsert by `<dealId>-<date>`.)

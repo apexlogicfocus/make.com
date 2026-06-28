@@ -10,7 +10,7 @@
         "url": "https://YOUR_BILLING_API/v1/invoices/search",
         "method": "post",
         "headers": [
-          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Authorization", "value": "Bearer YOUR_BILLING_API_KEY" },
           { "name": "Content-Type", "value": "application/json" }
         ],
         "qs": [],
@@ -24,14 +24,7 @@
         "restore": { "parameters": { "url": { "label": "Find open overdue invoices" } } }
       },
       "onerror": [
-        {
-          "id": 11,
-          "module": "builtin:Break",
-          "version": 1,
-          "parameters": {},
-          "mapper": { "count": "3", "interval": "5", "retry": true },
-          "metadata": { "designer": { "x": 0, "y": 300 } }
-        }
+        { "id": 11, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 0, "y": 300 } } }
       ]
     },
     {
@@ -56,9 +49,9 @@
           "flow": [
             {
               "id": 4,
-              "module": "email:ActionSendEmail",
-              "version": 1,
-              "parameters": {},
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "filter": {
                 "name": "7–13 days overdue",
                 "conditions": [
@@ -69,40 +62,42 @@
                 ]
               },
               "mapper": {
-                "to": [ "{{2.customer.email}}" ],
-                "subject": "Friendly reminder: invoice {{2.number}}",
-                "contentType": "html",
-                "html": "<p>Hi {{2.customer.firstName}},</p><p>Just a gentle nudge that invoice <strong>{{2.number}}</strong> for {{formatNumber(2.amount; 2)}} {{2.currency}} was due on {{formatDate(2.dueDate; \"MMM D\")}}. You can pay here: {{2.payUrl}}.</p><p>Thanks!</p>"
+                "url": "https://api.resend.com/emails",
+                "method": "post",
+                "headers": [
+                  { "name": "Authorization", "value": "Bearer YOUR_EMAIL_API_KEY" },
+                  { "name": "Content-Type", "value": "application/json" }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": true,
+                "contentType": "application/json",
+                "data": "{\n  \"from\": \"Billing <billing@yourdomain.com>\",\n  \"to\": [\"{{2.customer.email}}\"],\n  \"subject\": \"Friendly reminder: invoice {{2.number}}\",\n  \"html\": \"<p>Hi {{2.customer.firstName}},</p><p>Just a gentle nudge that invoice <strong>{{2.number}}</strong> for {{formatNumber(2.amount; 2)}} {{2.currency}} was due on {{formatDate(2.dueDate; \\\"MMM D\\\")}}. You can pay here: {{2.payUrl}}.</p><p>Thanks!</p>\"\n}"
               },
-              "metadata": { "designer": { "x": 900, "y": -150 } },
+              "metadata": { "designer": { "x": 900, "y": -150 }, "restore": { "parameters": { "url": { "label": "Stage 1: gentle reminder email" } } } },
               "onerror": [
-                {
-                  "id": 41,
-                  "module": "builtin:Break",
-                  "version": 1,
-                  "parameters": {},
-                  "mapper": { "count": "3", "interval": "10", "retry": true },
-                  "metadata": { "designer": { "x": 900, "y": 100 } }
-                }
+                { "id": 41, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "10", "retry": true }, "metadata": { "designer": { "x": 900, "y": 100 } } }
               ]
             },
             {
               "id": 5,
-              "module": "datastore:AddReplaceRecord",
-              "version": 1,
-              "parameters": { "datastore": "1" },
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "mapper": {
-                "key": "dun-{{2.id}}-{{formatDate(now; \"YYYYMMDD\")}}",
-                "overwrite": true,
-                "record": {
-                  "timestamp": "{{now}}",
-                  "scenario": "overdue-invoice-dunning",
-                  "status": "success",
-                  "record_id": "{{2.number}}",
-                  "message": "Stage 1 (gentle) reminder sent to {{2.customer.email}}"
-                }
+                "url": "https://YOUR_LOG_SINK/append",
+                "method": "post",
+                "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": false,
+                "contentType": "application/json",
+                "data": "{\n  \"timestamp\": \"{{now}}\",\n  \"scenario\": \"overdue-invoice-dunning\",\n  \"status\": \"success\",\n  \"record_id\": \"{{2.number}}\",\n  \"message\": \"Stage 1 (gentle) reminder sent to {{2.customer.email}}\"\n}"
               },
-              "metadata": { "designer": { "x": 1200, "y": -150 } }
+              "metadata": { "designer": { "x": 1200, "y": -150 } },
+              "onerror": [
+                { "id": 51, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "logged" }, "metadata": { "designer": { "x": 1200, "y": 100 } } }
+              ]
             }
           ]
         },
@@ -110,9 +105,9 @@
           "flow": [
             {
               "id": 6,
-              "module": "email:ActionSendEmail",
-              "version": 1,
-              "parameters": {},
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "filter": {
                 "name": "14–29 days overdue",
                 "conditions": [
@@ -123,40 +118,42 @@
                 ]
               },
               "mapper": {
-                "to": [ "{{2.customer.email}}" ],
-                "subject": "Action needed: invoice {{2.number}} is now {{floor(dateDifference(now; 2.dueDate; \"days\"))}} days overdue",
-                "contentType": "html",
-                "html": "<p>Hi {{2.customer.firstName}},</p><p>Invoice <strong>{{2.number}}</strong> ({{formatNumber(2.amount; 2)}} {{2.currency}}) remains unpaid and is now {{floor(dateDifference(now; 2.dueDate; \"days\"))}} days past due. Please settle it within 5 business days to avoid a late fee: {{2.payUrl}}.</p>"
+                "url": "https://api.resend.com/emails",
+                "method": "post",
+                "headers": [
+                  { "name": "Authorization", "value": "Bearer YOUR_EMAIL_API_KEY" },
+                  { "name": "Content-Type", "value": "application/json" }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": true,
+                "contentType": "application/json",
+                "data": "{\n  \"from\": \"Billing <billing@yourdomain.com>\",\n  \"to\": [\"{{2.customer.email}}\"],\n  \"subject\": \"Action needed: invoice {{2.number}} is now {{floor(dateDifference(now; 2.dueDate; \\\"days\\\"))}} days overdue\",\n  \"html\": \"<p>Hi {{2.customer.firstName}},</p><p>Invoice <strong>{{2.number}}</strong> ({{formatNumber(2.amount; 2)}} {{2.currency}}) remains unpaid and is now {{floor(dateDifference(now; 2.dueDate; \\\"days\\\"))}} days past due. Please settle it within 5 business days to avoid a late fee: {{2.payUrl}}.</p>\"\n}"
               },
-              "metadata": { "designer": { "x": 900, "y": 0 } },
+              "metadata": { "designer": { "x": 900, "y": 0 }, "restore": { "parameters": { "url": { "label": "Stage 2: firm reminder email" } } } },
               "onerror": [
-                {
-                  "id": 61,
-                  "module": "builtin:Break",
-                  "version": 1,
-                  "parameters": {},
-                  "mapper": { "count": "3", "interval": "10", "retry": true },
-                  "metadata": { "designer": { "x": 900, "y": 250 } }
-                }
+                { "id": 61, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "10", "retry": true }, "metadata": { "designer": { "x": 900, "y": 250 } } }
               ]
             },
             {
               "id": 7,
-              "module": "datastore:AddReplaceRecord",
-              "version": 1,
-              "parameters": { "datastore": "1" },
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "mapper": {
-                "key": "dun-{{2.id}}-{{formatDate(now; \"YYYYMMDD\")}}",
-                "overwrite": true,
-                "record": {
-                  "timestamp": "{{now}}",
-                  "scenario": "overdue-invoice-dunning",
-                  "status": "success",
-                  "record_id": "{{2.number}}",
-                  "message": "Stage 2 (firm) reminder sent to {{2.customer.email}}"
-                }
+                "url": "https://YOUR_LOG_SINK/append",
+                "method": "post",
+                "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": false,
+                "contentType": "application/json",
+                "data": "{\n  \"timestamp\": \"{{now}}\",\n  \"scenario\": \"overdue-invoice-dunning\",\n  \"status\": \"success\",\n  \"record_id\": \"{{2.number}}\",\n  \"message\": \"Stage 2 (firm) reminder sent to {{2.customer.email}}\"\n}"
               },
-              "metadata": { "designer": { "x": 1200, "y": 0 } }
+              "metadata": { "designer": { "x": 1200, "y": 0 } },
+              "onerror": [
+                { "id": 71, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "logged" }, "metadata": { "designer": { "x": 1200, "y": 250 } } }
+              ]
             }
           ]
         },
@@ -164,9 +161,9 @@
           "flow": [
             {
               "id": 8,
-              "module": "slack:CreateMessage",
-              "version": 1,
-              "parameters": {},
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "filter": {
                 "name": "30+ days overdue",
                 "conditions": [
@@ -174,38 +171,39 @@
                 ]
               },
               "mapper": {
-                "channel": "{{connection.financeChannelId}}",
-                "text": ":warning: *Invoice escalation* — {{2.number}} is {{floor(dateDifference(now; 2.dueDate; \"days\"))}} days overdue\nCustomer: {{2.customer.name}} ({{2.customer.email}})\nAmount: {{formatNumber(2.amount; 2)}} {{2.currency}}\n*Automated reminders exhausted — a human should call.*"
+                "url": "https://hooks.slack.com/services/REPLACE_WITH_YOUR_SLACK_WEBHOOK",
+                "method": "post",
+                "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": false,
+                "contentType": "application/json",
+                "data": "{\n  \"text\": \":warning: *Invoice escalation* — {{2.number}} is {{floor(dateDifference(now; 2.dueDate; \\\"days\\\"))}} days overdue\\nCustomer: {{2.customer.name}} ({{2.customer.email}})\\nAmount: {{formatNumber(2.amount; 2)}} {{2.currency}}\\nAutomated reminders exhausted — a human should call.\"\n}"
               },
-              "metadata": { "designer": { "x": 900, "y": 200 } },
+              "metadata": { "designer": { "x": 900, "y": 200 }, "restore": { "parameters": { "url": { "label": "Stage 3: Slack escalation (#finance)" } } } },
               "onerror": [
-                {
-                  "id": 81,
-                  "module": "builtin:Break",
-                  "version": 1,
-                  "parameters": {},
-                  "mapper": { "count": "3", "interval": "5", "retry": true },
-                  "metadata": { "designer": { "x": 900, "y": 450 } }
-                }
+                { "id": 81, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 900, "y": 450 } } }
               ]
             },
             {
               "id": 9,
-              "module": "datastore:AddReplaceRecord",
-              "version": 1,
-              "parameters": { "datastore": "1" },
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "mapper": {
-                "key": "dun-{{2.id}}-{{formatDate(now; \"YYYYMMDD\")}}",
-                "overwrite": true,
-                "record": {
-                  "timestamp": "{{now}}",
-                  "scenario": "overdue-invoice-dunning",
-                  "status": "escalated",
-                  "record_id": "{{2.number}}",
-                  "message": "Escalated to finance team (30+ days)"
-                }
+                "url": "https://YOUR_LOG_SINK/append",
+                "method": "post",
+                "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": false,
+                "contentType": "application/json",
+                "data": "{\n  \"timestamp\": \"{{now}}\",\n  \"scenario\": \"overdue-invoice-dunning\",\n  \"status\": \"escalated\",\n  \"record_id\": \"{{2.number}}\",\n  \"message\": \"Escalated to finance team (30+ days)\"\n}"
               },
-              "metadata": { "designer": { "x": 1200, "y": 200 } }
+              "metadata": { "designer": { "x": 1200, "y": 200 } },
+              "onerror": [
+                { "id": 91, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "logged" }, "metadata": { "designer": { "x": 1200, "y": 450 } } }
+              ]
             }
           ]
         }

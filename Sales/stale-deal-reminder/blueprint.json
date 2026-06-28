@@ -10,7 +10,7 @@
         "url": "https://YOUR_CRM_API/v1/deals/search",
         "method": "post",
         "headers": [
-          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Authorization", "value": "Bearer YOUR_CRM_API_KEY" },
           { "name": "Content-Type", "value": "application/json" }
         ],
         "qs": [],
@@ -24,14 +24,7 @@
         "restore": { "parameters": { "url": { "label": "Find deals idle > 7 days" } } }
       },
       "onerror": [
-        {
-          "id": 11,
-          "module": "builtin:Break",
-          "version": 1,
-          "parameters": {},
-          "mapper": { "count": "3", "interval": "5", "retry": true },
-          "metadata": { "designer": { "x": 0, "y": 300 } }
-        }
+        { "id": 11, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 0, "y": 300 } } }
       ]
     },
     {
@@ -54,7 +47,7 @@
         "url": "https://YOUR_CRM_API/v1/tasks",
         "method": "post",
         "headers": [
-          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Authorization", "value": "Bearer YOUR_CRM_API_KEY" },
           { "name": "Content-Type", "value": "application/json" }
         ],
         "qs": [],
@@ -68,57 +61,51 @@
         "restore": { "parameters": { "url": { "label": "Create follow-up task" } } }
       },
       "onerror": [
-        {
-          "id": 31,
-          "module": "builtin:Break",
-          "version": 1,
-          "parameters": {},
-          "mapper": { "count": "3", "interval": "5", "retry": true },
-          "metadata": { "designer": { "x": 600, "y": 300 } }
-        }
+        { "id": 31, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 600, "y": 300 } } }
       ]
     },
     {
       "id": 4,
-      "module": "slack:CreateMessage",
-      "version": 1,
-      "parameters": {},
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
       "mapper": {
-        "channel": "{{2.ownerSlackId}}",
-        "text": ":hourglass_flowing_sand: *Stale deal* — _{{2.name}}_\nNo activity in {{floor(dateDifference(now; 2.lastActivity; \"days\"))}} days. A follow-up task is on your list for tomorrow."
+        "url": "https://hooks.slack.com/services/REPLACE_WITH_YOUR_SLACK_WEBHOOK",
+        "method": "post",
+        "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": false,
+        "contentType": "application/json",
+        "data": "{\n  \"text\": \":hourglass_flowing_sand: *Stale deal* — {{2.name}} (owner {{2.ownerEmail}})\\nNo activity in {{floor(dateDifference(now; 2.lastActivity; \\\"days\\\"))}} days. A follow-up task is on the list for tomorrow.\"\n}"
       },
       "metadata": {
         "designer": { "x": 900, "y": 0 },
-        "restore": { "parameters": { "channel": { "label": "DM deal owner" } } }
+        "restore": { "parameters": { "url": { "label": "Slack incoming webhook (owner channel)" } } }
       },
       "onerror": [
-        {
-          "id": 41,
-          "module": "builtin:Resume",
-          "version": 1,
-          "parameters": {},
-          "mapper": { "value": "notify-skipped" },
-          "metadata": { "designer": { "x": 900, "y": 300 } }
-        }
+        { "id": 41, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "notify-skipped" }, "metadata": { "designer": { "x": 900, "y": 300 } } }
       ]
     },
     {
       "id": 5,
-      "module": "datastore:AddReplaceRecord",
-      "version": 1,
-      "parameters": { "datastore": "1" },
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
       "mapper": {
-        "key": "stale-{{2.id}}-{{formatDate(now; \"YYYYMMDD\")}}",
-        "overwrite": true,
-        "record": {
-          "timestamp": "{{now}}",
-          "scenario": "stale-deal-reminder",
-          "status": "success",
-          "record_id": "{{2.id}}",
-          "message": "Reminded {{2.ownerEmail}} about {{2.name}}"
-        }
+        "url": "https://YOUR_LOG_SINK/append",
+        "method": "post",
+        "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": false,
+        "contentType": "application/json",
+        "data": "{\n  \"timestamp\": \"{{now}}\",\n  \"scenario\": \"stale-deal-reminder\",\n  \"status\": \"success\",\n  \"record_id\": \"{{2.id}}\",\n  \"message\": \"Reminded {{2.ownerEmail}} about {{2.name}}\"\n}"
       },
-      "metadata": { "designer": { "x": 1200, "y": 0 } }
+      "metadata": { "designer": { "x": 1200, "y": 0 } },
+      "onerror": [
+        { "id": 51, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "logged" }, "metadata": { "designer": { "x": 1200, "y": 300 } } }
+      ]
     }
   ],
   "metadata": {

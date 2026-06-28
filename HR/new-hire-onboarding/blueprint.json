@@ -30,7 +30,7 @@
                 "url": "https://YOUR_IDP_API/v1/users",
                 "method": "post",
                 "headers": [
-                  { "name": "Authorization", "value": "Bearer {{connection.idpKey}}" },
+                  { "name": "Authorization", "value": "Bearer YOUR_IDP_API_KEY" },
                   { "name": "Content-Type", "value": "application/json" }
                 ],
                 "qs": [],
@@ -46,15 +46,23 @@
             },
             {
               "id": 4,
-              "module": "datastore:AddReplaceRecord",
-              "version": 1,
-              "parameters": { "datastore": "1" },
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "mapper": {
-                "key": "onboard-acct-{{1.workEmail}}",
-                "overwrite": true,
-                "record": { "timestamp": "{{now}}", "scenario": "new-hire-onboarding", "status": "success", "record_id": "{{1.workEmail}}", "message": "Account provisioned for {{1.firstName}} {{1.lastName}}" }
+                "url": "https://YOUR_LOG_SINK/append",
+                "method": "post",
+                "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": false,
+                "contentType": "application/json",
+                "data": "{\n  \"timestamp\": \"{{now}}\",\n  \"scenario\": \"new-hire-onboarding\",\n  \"status\": \"success\",\n  \"record_id\": \"{{1.workEmail}}\",\n  \"message\": \"Account provisioned for {{1.firstName}} {{1.lastName}}\"\n}"
               },
-              "metadata": { "designer": { "x": 900, "y": -200 } }
+              "metadata": { "designer": { "x": 900, "y": -200 } },
+              "onerror": [
+                { "id": 41, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "logged" }, "metadata": { "designer": { "x": 900, "y": -20 } } }
+              ]
             }
           ]
         },
@@ -62,16 +70,23 @@
           "flow": [
             {
               "id": 5,
-              "module": "email:ActionSendEmail",
-              "version": 1,
-              "parameters": {},
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "mapper": {
-                "to": [ "{{1.personalEmail}}" ],
-                "subject": "Welcome to the team, {{1.firstName}}! 🎉",
-                "contentType": "html",
-                "html": "<p>Hi {{1.firstName}},</p><p>We're thrilled you're joining as {{1.role}} on {{formatDate(1.startDate; \"dddd, MMM D\")}}. Before day one, please:</p><ul><li>Complete your paperwork: {{1.docsUrl}}</li><li>Read the first-week guide: {{1.handbookUrl}}</li></ul><p>Your manager {{1.managerName}} will reach out soon. Welcome aboard!</p>"
+                "url": "https://api.resend.com/emails",
+                "method": "post",
+                "headers": [
+                  { "name": "Authorization", "value": "Bearer YOUR_EMAIL_API_KEY" },
+                  { "name": "Content-Type", "value": "application/json" }
+                ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": true,
+                "contentType": "application/json",
+                "data": "{\n  \"from\": \"People Team <people@yourdomain.com>\",\n  \"to\": [\"{{1.personalEmail}}\"],\n  \"subject\": \"Welcome to the team, {{1.firstName}}!\",\n  \"html\": \"<p>Hi {{1.firstName}},</p><p>We're thrilled you're joining as {{1.role}} on {{formatDate(1.startDate; \\\"dddd, MMM D\\\")}}. Before day one, please:</p><ul><li>Complete your paperwork: {{1.docsUrl}}</li><li>Read the first-week guide: {{1.handbookUrl}}</li></ul><p>Your manager {{1.managerName}} will reach out soon. Welcome aboard!</p>\"\n}"
               },
-              "metadata": { "designer": { "x": 600, "y": 0 } },
+              "metadata": { "designer": { "x": 600, "y": 0 }, "restore": { "parameters": { "url": { "label": "Welcome email" } } } },
               "onerror": [
                 { "id": 51, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "10", "retry": true }, "metadata": { "designer": { "x": 600, "y": 200 } } }
               ]
@@ -89,7 +104,7 @@
                 "url": "https://YOUR_PM_API/v1/checklists",
                 "method": "post",
                 "headers": [
-                  { "name": "Authorization", "value": "Bearer {{connection.pmKey}}" },
+                  { "name": "Authorization", "value": "Bearer YOUR_PM_API_KEY" },
                   { "name": "Content-Type", "value": "application/json" }
                 ],
                 "qs": [],
@@ -105,14 +120,20 @@
             },
             {
               "id": 7,
-              "module": "slack:CreateMessage",
-              "version": 1,
-              "parameters": {},
+              "module": "http:ActionSendData",
+              "version": 3,
+              "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
               "mapper": {
-                "channel": "{{connection.teamChannelId}}",
-                "text": ":wave: Please welcome *{{1.firstName}} {{1.lastName}}*, joining as {{1.role}} in {{1.department}} on {{formatDate(1.startDate; \"MMM D\")}}! Manager: {{1.managerName}}."
+                "url": "https://hooks.slack.com/services/REPLACE_WITH_YOUR_SLACK_WEBHOOK",
+                "method": "post",
+                "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+                "qs": [],
+                "bodyType": "raw",
+                "parseResponse": false,
+                "contentType": "application/json",
+                "data": "{\n  \"text\": \":wave: Please welcome *{{1.firstName}} {{1.lastName}}*, joining as {{1.role}} in {{1.department}} on {{formatDate(1.startDate; \\\"MMM D\\\")}}! Manager: {{1.managerName}}.\"\n}"
               },
-              "metadata": { "designer": { "x": 900, "y": 250 }, "restore": { "parameters": { "channel": { "label": "#team" } } } },
+              "metadata": { "designer": { "x": 900, "y": 250 }, "restore": { "parameters": { "url": { "label": "Slack incoming webhook (#team)" } } } },
               "onerror": [
                 { "id": 71, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "announce-skipped" }, "metadata": { "designer": { "x": 900, "y": 450 } } }
               ]

@@ -24,10 +24,10 @@
         ]
       },
       "mapper": {
-        "url": "https://YOUR_ESP_API/3.0/lists/{{connection.listId}}/members",
+        "url": "https://YOUR_ESP_API/3.0/lists/YOUR_LIST_ID/members",
         "method": "post",
         "headers": [
-          { "name": "Authorization", "value": "Bearer {{connection.espKey}}" },
+          { "name": "Authorization", "value": "Bearer YOUR_ESP_API_KEY" },
           { "name": "Content-Type", "value": "application/json" }
         ],
         "qs": [],
@@ -41,14 +41,7 @@
         "restore": { "parameters": { "url": { "label": "Add subscriber to ESP (double opt-in)" } } }
       },
       "onerror": [
-        {
-          "id": 21,
-          "module": "builtin:Break",
-          "version": 1,
-          "parameters": {},
-          "mapper": { "count": "3", "interval": "5", "retry": true },
-          "metadata": { "designer": { "x": 300, "y": 300 } }
-        }
+        { "id": 21, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 300, "y": 300 } } }
       ]
     },
     {
@@ -60,7 +53,7 @@
         "url": "https://YOUR_CRM_API/v1/contacts/upsert",
         "method": "post",
         "headers": [
-          { "name": "Authorization", "value": "Bearer {{connection.apiKey}}" },
+          { "name": "Authorization", "value": "Bearer YOUR_CRM_API_KEY" },
           { "name": "Content-Type", "value": "application/json" }
         ],
         "qs": [],
@@ -74,33 +67,28 @@
         "restore": { "parameters": { "url": { "label": "Tag contact in CRM" } } }
       },
       "onerror": [
-        {
-          "id": 31,
-          "module": "builtin:Break",
-          "version": 1,
-          "parameters": {},
-          "mapper": { "count": "3", "interval": "5", "retry": true },
-          "metadata": { "designer": { "x": 600, "y": 300 } }
-        }
+        { "id": 31, "module": "builtin:Break", "version": 1, "parameters": {}, "mapper": { "count": "3", "interval": "5", "retry": true }, "metadata": { "designer": { "x": 600, "y": 300 } } }
       ]
     },
     {
       "id": 4,
-      "module": "datastore:AddReplaceRecord",
-      "version": 1,
-      "parameters": { "datastore": "1" },
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
       "mapper": {
-        "key": "news-{{1.email}}",
-        "overwrite": true,
-        "record": {
-          "timestamp": "{{now}}",
-          "scenario": "newsletter-signup-sync",
-          "status": "success",
-          "record_id": "{{1.email}}",
-          "message": "Synced to ESP (pending opt-in) + tagged in CRM"
-        }
+        "url": "https://YOUR_LOG_SINK/append",
+        "method": "post",
+        "headers": [ { "name": "Content-Type", "value": "application/json" } ],
+        "qs": [],
+        "bodyType": "raw",
+        "parseResponse": false,
+        "contentType": "application/json",
+        "data": "{\n  \"timestamp\": \"{{now}}\",\n  \"scenario\": \"newsletter-signup-sync\",\n  \"status\": \"success\",\n  \"record_id\": \"{{1.email}}\",\n  \"message\": \"Synced to ESP (pending opt-in) + tagged in CRM\"\n}"
       },
-      "metadata": { "designer": { "x": 900, "y": 0 } }
+      "metadata": { "designer": { "x": 900, "y": 0 } },
+      "onerror": [
+        { "id": 41, "module": "builtin:Resume", "version": 1, "parameters": {}, "mapper": { "value": "logged" }, "metadata": { "designer": { "x": 900, "y": 300 } } }
+      ]
     }
   ],
   "metadata": {

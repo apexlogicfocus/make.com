@@ -23,10 +23,10 @@ Because the branches are independent, a failure in one (say, the PM tool is down
 | Webhook | Custom webhook | Receive new-hire event |
 | Router | Basic router | Fan out to 3 branches |
 | HTTP | Create user | Provision IdP account |
-| Email | Send email | Welcome message |
+| HTTP | POST to email API | Welcome message |
 | HTTP | Create checklist | Manager onboarding tasks |
-| Slack | Create message | Team announcement |
-| Data Store | Add record | Audit log |
+| HTTP | POST to Slack webhook | Team announcement |
+| HTTP | POST to log sink | Audit log |
 
 ## Setup
 

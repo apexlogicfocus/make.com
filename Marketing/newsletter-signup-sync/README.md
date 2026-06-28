@@ -17,7 +17,7 @@ A signup form posts to the webhook. If the subscriber gave **consent**, the scen
 | Webhook | Custom webhook | Receive signup |
 | HTTP | Add subscriber | Email platform (Mailchimp/ConvertKit/Brevo) |
 | HTTP | Upsert contact | Tag in CRM |
-| Data Store | Add record | Audit log |
+| HTTP | POST to log sink | Audit log |
 
 ## Setup
 
@@ -42,6 +42,6 @@ flowchart LR
 
 - Both writes `Break`-retry 3× / 5 min.
 - The consent filter is the first gate — no consent, no write, by design.
-- Log key is the email with `overwrite: true`, so re-submits update one row rather than piling up.
+- Each sync POSTs one log row carrying the email; the consent filter is the first gate, so only consented signups are ever processed. (Your log sink can dedupe by email if you want re-submits collapsed.)
 
 > **Note:** Double opt-in (`pending`) is the default because it protects sender reputation and respects subscriber intent. Switch to single opt-in only if your platform/process requires it.

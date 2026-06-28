@@ -18,7 +18,7 @@ On a schedule, the scenario pulls a batch of **un-enriched** contacts from your 
 | Iterator | Basic feeder | Loop the batch | — |
 | HTTP | Enrich lookup | Provider call (Clearbit/Apollo/etc.) | Enrichment API key |
 | HTTP | PATCH contact | Write data back | CRM API key |
-| Data Store | Add record | Per-contact audit log | Data Store `Automation Log` |
+| HTTP | POST to log sink | Per-contact audit log | [Log sink](../../docs/log-sink.md) URL |
 
 ## Setup
 
